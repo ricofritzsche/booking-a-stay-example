@@ -62,6 +62,10 @@ It must know who requests the change. A guest may be allowed to change their own
 
 It must check whether the reservation is still changeable at the requested time. In the first version, this can be simple: a reservation can be changed before check-in, but not after the stay has already started.
 
+It must know whether the guest is still eligible to book. A blocked guest cannot move an existing reservation to a new booking situation in the first version.
+
+It must know whether the listing is still bookable. A disabled listing cannot accept the changed stay, even if the requested nights are free.
+
 It must evaluate the changed stay against the listing’s rules. The new date range must be valid, the guest count must be allowed, and the stay length must fit the listing’s minimum and maximum nights.
 
 It must also check availability for the new requested nights. Nights already occupied by the same reservation should be ignored for this decision. Other confirmed reservations or blocked nights still matter.
@@ -75,6 +79,8 @@ the reservation exists
 the reservation is currently confirmed
 the requester is allowed to change it
 the reservation is still changeable
+the guest is still eligible to book
+the listing is still bookable
 the changed date range is valid
 the changed guest count is valid
 the changed stay respects the listing’s rules
@@ -96,12 +102,13 @@ reservation not found
 reservation already cancelled
 requester is not allowed to change this reservation
 reservation can no longer be changed
+guest is blocked
+listing is disabled
 invalid date range
 too many guests
 stay is too short
 stay is too long
-listing is disabled
-listing is already reserved for the requested dates
+listing is unavailable for the requested dates
 ```
 
 The rejection reason belongs to the domain. It should explain why the change was not accepted, not expose how the system stores reservations.

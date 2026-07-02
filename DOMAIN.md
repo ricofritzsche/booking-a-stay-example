@@ -2,7 +2,7 @@
 
 This example app is a booking system for stays. It is not a full clone of Airbnb or Booking.com, but it uses the same basic language: guests book stays, hosts offer listings, and the system confirms reservations.
 
-The purpose of the app is to build the core flow behind a stay booking without turning the example into a full travel platform. We focus on the business behavior that matters when a guest wants to reserve a listing for a date range.
+The purpose of the app is to describe the core flow behind a stay booking without turning the example into a full travel platform. We focus on the business behavior that matters when a guest wants to reserve a listing for a date range.
 
 A guest does not think in database rows or technical operations. A guest wants to book a stay. The system has to decide whether the stay can be confirmed. If the guest is allowed to book, the listing is available, the requested dates are free, and the booking rules are satisfied, the system confirms a reservation.
 
@@ -40,7 +40,7 @@ listing is disabled
 too many guests
 stay is too short
 stay is too long
-listing is already reserved for the requested dates
+listing is unavailable for the requested dates
 ```
 
 The important business idea is simple: booking a stay is not just placing a reservation somewhere. It is a decision that depends on the current booking situation.
@@ -118,6 +118,8 @@ flowchart TD
 ## First version scope
 
 The first version should focus on **Book a Stay**.
+
+Listing booking rules such as guest capacity, minimum nights, and maximum nights are treated as existing listing settings in the first version. Managing these settings is outside the first implementation scope and can become a separate capability later.
 
 That gives us enough domain behavior to make the example useful:
 

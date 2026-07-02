@@ -62,7 +62,7 @@ It must know whether the listing exists and can receive bookings. A disabled lis
 
 It must check the listing’s booking rules. A listing may define a maximum guest count, a minimum number of nights, or a maximum stay length.
 
-It must check whether the requested nights are available. A reservation cannot be confirmed when another confirmed reservation already occupies one of the requested nights.
+It must check whether the requested nights are available. A reservation cannot be confirmed when another confirmed reservation already occupies one of the requested nights or the host has blocked one of the requested nights.
 
 These checks belong together because they all influence the same business decision.
 
@@ -78,7 +78,7 @@ the listing is bookable
 the date range is valid
 the guest count is valid
 the stay respects the listing’s rules
-none of the requested nights are already reserved
+none of the requested nights are unavailable because of a confirmed reservation or host block
 ```
 
 If one of these conditions is not true, the reservation is not confirmed.
@@ -100,7 +100,7 @@ invalid date range
 too many guests
 stay is too short
 stay is too long
-listing is already reserved for the requested dates
+listing is unavailable for the requested dates
 ```
 
 The rejection reason belongs to the domain. It should not expose technical details. The guest or caller needs to know what prevented the booking, not how the system stores reservations.
