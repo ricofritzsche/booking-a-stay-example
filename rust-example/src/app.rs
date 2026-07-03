@@ -7,17 +7,15 @@
 
 use std::time::Duration;
 
-use axum::http::StatusCode;
 use tokio::net::TcpListener;
 use tokio::signal;
-use tower_http::timeout::TimeoutLayer;
-use tower_http::trace::TraceLayer;
 use tracing::info;
 
 use crate::application_state::AppState;
 use crate::config::Config;
 use crate::error::StartupError;
 use crate::providers::Providers;
+use crate::telemetry;
 use crate::{api, db};
 
 /// Builds and runs the application until a shutdown signal is received.
@@ -27,14 +25,7 @@ pub async fn run(config: Config) -> Result<(), StartupError> {
 
     let state = AppState::new(pool, Providers::new());
 
-    let app = api::router(state)
-        // Emit a span + structured log per request.
-        .layer(TraceLayer::new_for_http())
-        // Bound how long any single request may run; reply 408 on timeout.
-        .layer(TimeoutLayer::with_status_code(
-            StatusCode::REQUEST_TIMEOUT,
-            Duration::from_secs(30),
-        ));
+    let app = telemetry::http_layer(api::router(state), Duration::from_secs(30));
 
     let listener = TcpListener::bind(config.bind_address()).await?;
     info!(address = %config.bind_address(), "listening");

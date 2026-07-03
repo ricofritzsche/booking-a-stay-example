@@ -1,8 +1,8 @@
 //! Binary entrypoint.
 //!
-//! `main` stays intentionally tiny: it initializes telemetry, loads
-//! configuration, and hands control to [`app::run`]. All wiring lives in
-//! [`app`], all real work will live in capabilities.
+//! `main` stays intentionally tiny: it loads configuration, initializes
+//! telemetry, and hands control to [`app::run`]. All wiring lives in [`app`],
+//! all real work will live in capabilities.
 
 mod api;
 mod app;
@@ -18,11 +18,8 @@ use crate::error::StartupError;
 
 #[tokio::main]
 async fn main() -> Result<(), StartupError> {
-    // Structured logging must be available before anything else runs so that
-    // configuration and startup errors are captured.
-    telemetry::init();
-
     let config = config::Config::load()?;
+    telemetry::init(&config.telemetry);
 
     app::run(config).await
 }

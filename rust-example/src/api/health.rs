@@ -45,7 +45,7 @@ mod tests {
     use sqlx::postgres::PgPoolOptions;
     use tower::ServiceExt;
 
-    use crate::{api, application_state::AppState, providers::Providers};
+    use crate::{api, application_state::AppState, providers::Providers, telemetry};
 
     #[tokio::test]
     async fn health_returns_service_unavailable_when_database_is_unreachable() {
@@ -75,5 +75,59 @@ mod tests {
 
         assert!(body.contains(r#""status":"degraded""#));
         assert!(body.contains(r#""database":"down""#));
+    }
+
+    #[tokio::test]
+    async fn health_response_propagates_request_id() {
+        let pool = PgPoolOptions::new()
+            .max_connections(1)
+            .acquire_timeout(Duration::from_millis(50))
+            .connect_lazy("postgres://postgres:postgres@127.0.0.1:1/booking_a_stay")
+            .expect("test database URL should be valid");
+        let app = telemetry::http_layer(
+            api::router(AppState::new(pool, Providers::new())),
+            Duration::from_secs(1),
+        );
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/health")
+                    .header("x-request-id", "test-request-id")
+                    .body(Body::empty())
+                    .expect("request should be valid"),
+            )
+            .await
+            .expect("router should produce a response");
+
+        assert_eq!(
+            response.headers().get("x-request-id").unwrap(),
+            "test-request-id"
+        );
+    }
+
+    #[tokio::test]
+    async fn health_response_generates_request_id_when_missing() {
+        let pool = PgPoolOptions::new()
+            .max_connections(1)
+            .acquire_timeout(Duration::from_millis(50))
+            .connect_lazy("postgres://postgres:postgres@127.0.0.1:1/booking_a_stay")
+            .expect("test database URL should be valid");
+        let app = telemetry::http_layer(
+            api::router(AppState::new(pool, Providers::new())),
+            Duration::from_secs(1),
+        );
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/health")
+                    .body(Body::empty())
+                    .expect("request should be valid"),
+            )
+            .await
+            .expect("router should produce a response");
+
+        assert!(response.headers().get("x-request-id").is_some());
     }
 }

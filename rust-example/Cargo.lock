@@ -1762,9 +1762,11 @@ dependencies = [
  "percent-encoding",
  "pin-project-lite",
  "tokio",
+ "tower",
  "tower-layer",
  "tower-service",
  "tracing",
+ "uuid",
 ]
 
 [[package]]

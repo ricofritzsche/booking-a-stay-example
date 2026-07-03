@@ -1,8 +1,8 @@
 //! Telemetry setup.
 //!
-//! Initializes the global `tracing` subscriber. Output is human-readable by
-//! default; set `APP_LOG_FORMAT=json` for structured logs in production.
+//! Initializes the global `tracing` subscriber and owns HTTP observability
+//! middleware: request IDs, spans, status codes, and latency logging.
 
 mod subscriber;
 
-pub use subscriber::init;
+pub use subscriber::{http_layer, init};

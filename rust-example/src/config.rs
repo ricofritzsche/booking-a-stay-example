@@ -20,6 +20,7 @@ use figment::{
 pub struct Config {
     pub server: ServerConfig,
     pub database: DatabaseConfig,
+    pub telemetry: TelemetryConfig,
 }
 
 /// HTTP server binding.
@@ -38,6 +39,25 @@ pub struct DatabaseConfig {
     pub url: String,
     /// Upper bound on pooled connections.
     pub max_connections: u32,
+}
+
+/// Logging and request tracing settings.
+#[derive(Debug, Clone, Deserialize)]
+pub struct TelemetryConfig {
+    /// Output format for application logs.
+    pub log_format: LogFormat,
+    /// Default filter used when neither `RUST_LOG` nor `APP_LOG_LEVEL` is set.
+    pub log_level: String,
+}
+
+/// Supported log output formats.
+#[derive(Debug, Clone, Copy, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LogFormat {
+    /// Compact human-readable logs for local development.
+    Pretty,
+    /// Structured JSON logs for production log collectors.
+    Json,
 }
 
 impl Config {

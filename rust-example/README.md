@@ -51,6 +51,10 @@ port = 8080
 [database]
 url = "postgres://postgres:postgres@localhost:5432/booking_a_stay"
 max_connections = 10
+
+[telemetry]
+log_format = "pretty"
+log_level = "info"
 ```
 
 The checked-in URL is for local development only. Deployment should provide its
@@ -78,12 +82,16 @@ curl http://localhost:8080/health
 
 ## Logging
 
-Structured logging via `tracing`. Control verbosity with `RUST_LOG`, and switch
-to JSON output with `APP_LOG_FORMAT=json`:
+Structured logging via `tracing`. Control verbosity with `RUST_LOG` or
+`APP_LOG_LEVEL`, and switch to JSON output with `APP_LOG_FORMAT=json` or
+`APP_TELEMETRY__LOG_FORMAT=json`:
 
 ```bash
 RUST_LOG=debug APP_LOG_FORMAT=json cargo run
 ```
+
+Each HTTP request receives or preserves an `x-request-id` header. The request
+span records method, path, status, latency, and request ID.
 
 ## Develop
 

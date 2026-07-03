@@ -11,10 +11,10 @@ serde = { version = "1.0.228", features = ["derive"] }
 sqlx = { version = "0.9.0", default-features = false, features = ["chrono", "macros", "migrate", "postgres", "runtime-tokio", "tls-rustls-ring", "uuid"] }
 thiserror = "2.0.18"
 tokio = { version = "1.52.3", features = ["full"] }
-tower-http = { version = "0.7.0", features = ["trace", "timeout"] }
+tower = { version = "0.5.2", features = ["util"] }
+tower-http = { version = "0.7.0", features = ["request-id", "trace", "timeout", "util"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json"] }
 uuid = { version = "1.23.4", features = ["v4", "serde"] }
 
 [dev-dependencies]
-tower = { version = "0.5.2", features = ["util"] }
