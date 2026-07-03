@@ -1,0 +1,20 @@
+[package]
+name = "booking_a_stay"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = "0.8.9"
+chrono = { version = "0.4.45", features = ["serde"] }
+figment = { version = "0.10.19", features = ["env", "toml"] }
+serde = { version = "1.0.228", features = ["derive"] }
+sqlx = { version = "0.9.0", default-features = false, features = ["chrono", "macros", "migrate", "postgres", "runtime-tokio", "tls-rustls-ring", "uuid"] }
+thiserror = "2.0.18"
+tokio = { version = "1.52.3", features = ["full"] }
+tower-http = { version = "0.7.0", features = ["trace", "timeout"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json"] }
+uuid = { version = "1.23.4", features = ["v4", "serde"] }
+
+[dev-dependencies]
+tower = { version = "0.5.2", features = ["util"] }

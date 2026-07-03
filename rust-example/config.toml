@@ -1,0 +1,12 @@
+# Default configuration. Every value can be overridden by an environment
+# variable prefixed `APP_`, using `__` for nesting, e.g.:
+#   APP_SERVER__PORT=9000
+#   APP_DATABASE__URL=postgres://user:pass@localhost:5432/booking
+
+[server]
+host = "0.0.0.0"
+port = 8080
+
+[database]
+url = "postgres://postgres:postgres@localhost:5432/booking_a_stay"
+max_connections = 10

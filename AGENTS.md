@@ -9,11 +9,12 @@ The repository root is language-neutral. It contains domain documentation, capab
 Concrete implementations live in dedicated folders:
 
 
+```
 rust-example/
 go-example/
 typescript-example/
-
 ```
+
 
 Start with `rust-example/` unless told otherwise.
 
@@ -74,7 +75,6 @@ Context is always capability-specific. Never reuse a generic "entity version" fo
 - Run tests with:
   ```bash
   cargo test
-```
 
 Use focused test commands once the capability exists (e.g. `cargo test book_a_stay`).
 
