@@ -5,4 +5,4 @@
 
 mod subscriber;
 
-pub use subscriber::{http_layer, init};
+pub use subscriber::{RequestId, http_layer, init};

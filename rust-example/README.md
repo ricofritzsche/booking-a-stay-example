@@ -93,6 +93,9 @@ RUST_LOG=debug APP_LOG_FORMAT=json cargo run
 Each HTTP request receives or preserves an `x-request-id` header. The request
 span records method, path, status, latency, and request ID.
 
+Handlers can extract `telemetry::RequestId` and attach it to `AppError` values
+so error responses include the same request ID as the logs.
+
 ## Develop
 
 ```bash

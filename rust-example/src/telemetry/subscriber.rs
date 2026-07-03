@@ -5,12 +5,13 @@ use std::{env, time::Duration};
 use axum::{
     Router,
     body::Body,
-    http::{Request, StatusCode},
+    extract::FromRequestParts,
+    http::{Request, StatusCode, request::Parts},
 };
 use tower::ServiceBuilder;
 use tower_http::{
     ServiceBuilderExt,
-    request_id::MakeRequestUuid,
+    request_id::{MakeRequestUuid, RequestId as TowerRequestId},
     timeout::TimeoutLayer,
     trace::{DefaultOnFailure, TraceLayer},
 };
@@ -20,6 +21,61 @@ use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 use crate::config::{LogFormat, TelemetryConfig};
 
 const REQUEST_ID_HEADER: &str = "x-request-id";
+
+/// Request correlation ID for logs, responses, and capability execution.
+///
+/// The HTTP middleware guarantees every request has an `x-request-id` header.
+/// Handlers can extract this type and pass the plain string into capability
+/// shells when they want capability logs to share the same correlation ID.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RequestId(String);
+
+impl RequestId {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    fn from_parts(parts: &Parts) -> Option<Self> {
+        parts
+            .extensions
+            .get::<TowerRequestId>()
+            .and_then(Self::from_tower_request_id)
+            .or_else(|| {
+                parts
+                    .headers
+                    .get(REQUEST_ID_HEADER)
+                    .and_then(|value| value.to_str().ok())
+                    .map(Self::from)
+            })
+    }
+
+    fn from_tower_request_id(request_id: &TowerRequestId) -> Option<Self> {
+        request_id.header_value().to_str().ok().map(Self::from)
+    }
+}
+
+impl From<&str> for RequestId {
+    fn from(value: &str) -> Self {
+        Self(value.to_owned())
+    }
+}
+
+impl From<String> for RequestId {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+
+impl<S> FromRequestParts<S> for RequestId
+where
+    S: Send + Sync,
+{
+    type Rejection = StatusCode;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        Self::from_parts(parts).ok_or(StatusCode::INTERNAL_SERVER_ERROR)
+    }
+}
 
 /// Installs the process-wide tracing subscriber.
 ///
@@ -91,10 +147,18 @@ fn log_format(config: &TelemetryConfig) -> LogFormat {
 
 fn make_request_span(request: &Request<Body>) -> Span {
     let request_id = request
-        .headers()
-        .get(REQUEST_ID_HEADER)
-        .and_then(|value| value.to_str().ok())
-        .unwrap_or("unknown");
+        .extensions()
+        .get::<TowerRequestId>()
+        .and_then(RequestId::from_tower_request_id)
+        .map(|value| value.0)
+        .or_else(|| {
+            request
+                .headers()
+                .get(REQUEST_ID_HEADER)
+                .and_then(|value| value.to_str().ok())
+                .map(str::to_owned)
+        })
+        .unwrap_or_else(|| "unknown".to_owned());
 
     tracing::info_span!(
         "http_request",
