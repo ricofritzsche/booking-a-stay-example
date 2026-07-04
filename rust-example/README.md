@@ -102,6 +102,13 @@ curl http://localhost:8080/health
 # {"status":"ok","database":"up"}
 ```
 
+Product API routes live under `/api`. Booking a stay is exposed as creating a
+reservation:
+
+```bash
+POST /api/reservations
+```
+
 ## Logging
 
 Structured logging via `tracing`. Control verbosity with `RUST_LOG` or
