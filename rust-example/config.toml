@@ -10,6 +10,7 @@ port = 8080
 [database]
 url = "postgres://postgres:postgres@localhost:5432/booking_a_stay"
 max_connections = 10
+run_migrations = true
 
 [telemetry]
 log_format = "pretty"

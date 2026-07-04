@@ -37,6 +37,20 @@ docker run --name booking-pg -e POSTGRES_PASSWORD=postgres \
 Either option leaves Postgres reachable on `localhost:5432` with the database
 the default configuration expects.
 
+## Migrations
+
+Run SQLx migrations from this directory after creating the database:
+
+```bash
+sqlx migrate run
+```
+
+By default SQLx reads `DATABASE_URL`; use the local development URL if needed:
+
+```bash
+DATABASE_URL="postgres://postgres:postgres@localhost:5432/booking_a_stay" sqlx migrate run
+```
+
 ## Configuration
 
 Settings come from `config.toml`, overridable by `APP_`-prefixed environment
@@ -51,6 +65,7 @@ port = 8080
 [database]
 url = "postgres://postgres:postgres@localhost:5432/booking_a_stay"
 max_connections = 10
+run_migrations = true
 
 [telemetry]
 log_format = "pretty"
@@ -59,6 +74,13 @@ log_level = "info"
 
 The checked-in URL is for local development only. Deployment should provide its
 database connection string through `APP_DATABASE__URL`.
+
+The application runs pending SQLx migrations on startup by default. Disable
+that only for environments that apply migrations separately:
+
+```bash
+export APP_DATABASE__RUN_MIGRATIONS=false
+```
 
 Override examples:
 

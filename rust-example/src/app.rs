@@ -12,6 +12,7 @@ use tokio::signal;
 use tracing::info;
 
 use crate::application_state::AppState;
+use crate::application_state::db::run_migrations;
 use crate::config::Config;
 use crate::error::StartupError;
 use crate::providers::Providers;
@@ -22,6 +23,11 @@ use crate::{api, db};
 pub async fn run(config: Config) -> Result<(), StartupError> {
     let pool = db::connect(&config.database).await?;
     info!("database pool established");
+    if config.database.run_migrations {
+        run_migrations(&pool).await?;
+    } else {
+        info!("database migrations disabled by configuration");
+    }
 
     let state = AppState::new(pool, Providers::new());
 

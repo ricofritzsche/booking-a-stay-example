@@ -39,6 +39,9 @@ pub struct DatabaseConfig {
     pub url: String,
     /// Upper bound on pooled connections.
     pub max_connections: u32,
+    /// Whether startup should apply SQLx migrations before serving traffic.
+    #[serde(default = "default_run_migrations")]
+    pub run_migrations: bool,
 }
 
 /// Logging and request tracing settings.
@@ -84,6 +87,10 @@ impl Config {
 
 fn default_config_path() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("config.toml")
+}
+
+fn default_run_migrations() -> bool {
+    true
 }
 
 fn validate(config: &Config) -> Result<(), crate::error::StartupError> {

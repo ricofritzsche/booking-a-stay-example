@@ -6,5 +6,6 @@
 //! decision logic.
 
 mod app_state;
+pub(crate) mod db;
 
 pub use app_state::AppState;
