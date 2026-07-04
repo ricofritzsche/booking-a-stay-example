@@ -1,13 +1,13 @@
 //! Book Stay capability.
 //!
-//! This module currently contains only the Functional Core: explicit input
-//! data, decision context, and decision result. The RPU shell, SQL, locking,
-//! and API delivery are intentionally out of scope for this step.
+//! This module contains the Functional Core and its PostgreSQL-backed RPU shell.
 
 pub mod context;
 pub mod decide;
+pub mod process;
 pub mod request;
 pub mod result;
+pub mod sql;
 
 #[cfg(test)]
 mod decide_tests;

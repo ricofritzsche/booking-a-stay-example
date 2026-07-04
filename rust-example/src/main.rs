@@ -1,20 +1,7 @@
 //! Binary entrypoint.
-//!
-//! `main` stays intentionally tiny: it loads configuration, initializes
-//! telemetry, and hands control to [`app::run`]. All wiring lives in [`app`],
-//! all real work will live in capabilities.
 
-mod api;
-mod app;
-mod application_state;
-mod capabilities;
-mod config;
-mod db;
-mod error;
-mod providers;
-mod telemetry;
-
-use crate::error::StartupError;
+use booking_a_stay::error::StartupError;
+use booking_a_stay::{app, config, telemetry};
 
 #[tokio::main]
 async fn main() -> Result<(), StartupError> {
