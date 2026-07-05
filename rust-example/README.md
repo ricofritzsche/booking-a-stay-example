@@ -102,11 +102,116 @@ curl http://localhost:8080/health
 # {"status":"ok","database":"up"}
 ```
 
-Product API routes live under `/api`. Booking a stay is exposed as creating a
+API routes live under `/api`. Booking a stay is exposed as creating a
 reservation:
 
 ```bash
 POST /api/reservations
+```
+
+## Demo data
+
+Migrations seed deterministic demo data for local API usage.
+
+Useful eligible guest:
+
+```text
+Manuel Horse
+20000000-0000-0000-0000-000000000001
+```
+
+Useful bookable listing:
+
+```text
+Seaside Apartment with Morning Balcony
+30000000-0000-0000-0000-000000000001
+```
+
+Blocked guests and disabled listings are also included so rejection paths can
+be tried.
+
+## Example requests
+
+Successful bookings return `201 Created` with a generated reservation id.
+
+```bash
+curl -i -X POST http://localhost:8080/api/reservations \
+  -H 'content-type: application/json' \
+  -d '{
+    "guest_id": "20000000-0000-0000-0000-000000000001",
+    "listing_id": "30000000-0000-0000-0000-000000000001",
+    "check_in": "2026-08-01",
+    "check_out": "2026-08-04",
+    "guest_count": 2
+  }'
+```
+
+```bash
+curl -i -X POST http://localhost:8080/api/reservations \
+  -H 'content-type: application/json' \
+  -d '{
+    "guest_id": "20000000-0000-0000-0000-000000000002",
+    "listing_id": "30000000-0000-0000-0000-000000000002",
+    "check_in": "2026-08-05",
+    "check_out": "2026-08-07",
+    "guest_count": 2
+  }'
+```
+
+```bash
+curl -i -X POST http://localhost:8080/api/reservations \
+  -H 'content-type: application/json' \
+  -d '{
+    "guest_id": "20000000-0000-0000-0000-000000000003",
+    "listing_id": "30000000-0000-0000-0000-000000000005",
+    "check_in": "2026-08-10",
+    "check_out": "2026-08-13",
+    "guest_count": 4
+  }'
+```
+
+Expected error responses:
+
+```bash
+curl -i -X POST http://localhost:8080/api/reservations \
+  -H 'content-type: application/json' \
+  -d '{
+    "guest_id": "20000000-0000-0000-0000-000000000009",
+    "listing_id": "30000000-0000-0000-0000-000000000003",
+    "check_in": "2026-08-01",
+    "check_out": "2026-08-04",
+    "guest_count": 2
+  }'
+# 409 Conflict
+# {"code":"guest_blocked","message":"guest is blocked from booking"}
+```
+
+```bash
+curl -i -X POST http://localhost:8080/api/reservations \
+  -H 'content-type: application/json' \
+  -d '{
+    "guest_id": "20000000-0000-0000-0000-000000000001",
+    "listing_id": "30000000-0000-0000-0000-000000000046",
+    "check_in": "2026-08-01",
+    "check_out": "2026-08-04",
+    "guest_count": 2
+  }'
+# 409 Conflict
+# {"code":"listing_disabled","message":"listing is disabled for booking"}
+```
+
+```bash
+curl -i -X POST http://localhost:8080/api/reservations \
+  -H 'content-type: application/json' \
+  -d '{
+    "guest_id": "20000000-0000-0000-0000-000000000001",
+    "listing_id": "30000000-0000-0000-0000-000000000001",
+    "check_in": "2026-08-01",
+    "check_out": "2026-08-01",
+    "guest_count": 2
+  }'
+# 422 Unprocessable Entity
+# {"code":"invalid_date_range","message":"check-out must be after check-in"}
 ```
 
 ## Logging

@@ -12,16 +12,20 @@ mod confirmation;
 mod date_range;
 mod guest;
 mod listing;
+mod past_date;
 mod stay_rules;
 
 fn valid_request() -> BookStay {
     BookStay {
-        reservation_id: Uuid::from_u128(1),
         guest_id: Uuid::from_u128(2),
         listing_id: Uuid::from_u128(3),
         stay: stay(1, 4),
         guest_count: 2,
     }
+}
+
+fn reservation_id() -> Uuid {
+    Uuid::from_u128(1)
 }
 
 fn valid_context() -> BookingContext {
@@ -50,6 +54,12 @@ fn date(year: i32, month: u32, day: u32) -> NaiveDate {
 
 fn confirmed_at() -> DateTime<Utc> {
     DateTime::parse_from_rfc3339("2026-07-01T12:00:00Z")
+        .expect("fixture timestamp must be valid")
+        .with_timezone(&Utc)
+}
+
+fn current_booking_time() -> DateTime<Utc> {
+    DateTime::parse_from_rfc3339("2026-07-05T12:00:00Z")
         .expect("fixture timestamp must be valid")
         .with_timezone(&Utc)
 }

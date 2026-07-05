@@ -7,7 +7,7 @@ fn rejects_invalid_date_range() {
     request.stay.check_out = request.stay.check_in;
 
     assert_eq!(
-        decide(&request, &valid_context(), confirmed_at()),
+        decide(&request, &valid_context(), reservation_id(), confirmed_at()),
         Err(BookingRejected::InvalidDateRange)
     );
 }

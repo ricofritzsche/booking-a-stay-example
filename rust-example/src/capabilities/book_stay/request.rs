@@ -3,7 +3,6 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BookStay {
-    pub reservation_id: Uuid,
     pub guest_id: Uuid,
     pub listing_id: Uuid,
     pub stay: Stay,

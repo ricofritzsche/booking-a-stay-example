@@ -47,3 +47,31 @@ commit only when the command context is still valid
 Do not introduce a central domain model to make capabilities share behavior. Do not route capability behavior through generic repositories. Shared code is allowed only for mechanics, such as transactions, SQL helpers, context locking, clocks, IDs, and error mapping.
 
 When a new business behavior is added, prefer adding a new capability next to the existing ones. Reuse the shared Application State, but keep the decision logic, context shape, and consistency rule inside the capability that executes the command.
+
+## Delivery Mechanism
+
+The Delivery Mechanism translates external interaction formats.
+
+In this Rust example, the HTTP API is a Delivery Mechanism.
+
+map HTTP input to a capability request
+
+map HTTP input to a capability request
+call the RPU
+map the RPU response to HTTP output
+map domain rejections to HTTP status codes
+
+#### Correct shape
+
+```
+HTTP request -> Command -> process(request, &state) -> domain response -> HTTP response
+```
+
+#### Rule
+
+```
+Delivery Mechanism translates.
+RPU processes (provider, query/write).
+Functional Core decides.
+Providers belong to the RPU shell.
+```

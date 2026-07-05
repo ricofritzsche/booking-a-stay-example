@@ -1,7 +1,8 @@
+use booking_a_stay::application_state::AppState;
 use booking_a_stay::capabilities::book_stay::process::{BookStayResponse, process};
 use booking_a_stay::capabilities::book_stay::request::{BookStay, Stay};
 use booking_a_stay::capabilities::book_stay::result::BookingRejected;
-use booking_a_stay::providers::Clock;
+use booking_a_stay::providers::Providers;
 use chrono::NaiveDate;
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use sqlx::{Executor, Row};
@@ -15,29 +16,35 @@ async fn confirms_reservation_and_records_listing_unavailable_nights() {
     let _guard = TEST_DATABASE_LOCK.lock().await;
     let pool = prepare_database().await;
     let fixture = seed_bookable_listing(&pool, "eligible", "bookable").await;
+    let state = app_state(pool.clone());
 
-    let request = book_stay_request(fixture.reservation_id, fixture.guest_id, fixture.listing_id);
-    let response = process(request, &pool, &Clock::default())
+    let request = book_stay_request(fixture.guest_id, fixture.listing_id);
+    let response = process(request, &state)
         .await
         .expect("process should not fail technically");
 
-    assert_eq!(
-        response,
-        BookStayResponse::Confirmed {
-            reservation_id: fixture.reservation_id
+    let reservation_id = match response {
+        BookStayResponse::Confirmed { reservation_id } => reservation_id,
+        BookStayResponse::Rejected(rejection) => {
+            panic!("expected confirmation, got rejection: {rejection:?}");
         }
-    );
+    };
 
     let reservation_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM reservations")
         .fetch_one(&pool)
         .await
         .expect("reservations count should be readable");
     assert_eq!(reservation_count, 1);
+    assert_eq!(
+        stored_reservation_id(&pool).await,
+        reservation_id,
+        "RPU-generated reservation id should be recorded"
+    );
 
     let unavailable_nights = unavailable_nights(&pool, fixture.listing_id).await;
     assert_eq!(
         unavailable_nights,
-        vec![date(2026, 7, 1), date(2026, 7, 2), date(2026, 7, 3)]
+        vec![date(2026, 8, 1), date(2026, 8, 2), date(2026, 8, 3)]
     );
 }
 
@@ -46,15 +53,16 @@ async fn does_not_occupy_the_check_out_date() {
     let _guard = TEST_DATABASE_LOCK.lock().await;
     let pool = prepare_database().await;
     let fixture = seed_bookable_listing(&pool, "eligible", "bookable").await;
+    let state = app_state(pool.clone());
 
-    let request = book_stay_request(fixture.reservation_id, fixture.guest_id, fixture.listing_id);
-    process(request, &pool, &Clock::default())
+    let request = book_stay_request(fixture.guest_id, fixture.listing_id);
+    process(request, &state)
         .await
         .expect("process should not fail technically");
 
     let check_out_count: i64 =
         sqlx::query_scalar("SELECT COUNT(*) FROM listing_unavailable_nights WHERE night = $1")
-            .bind(date(2026, 7, 4))
+            .bind(date(2026, 8, 4))
             .fetch_one(&pool)
             .await
             .expect("check-out count should be readable");
@@ -67,9 +75,10 @@ async fn rejects_when_guest_is_blocked() {
     let _guard = TEST_DATABASE_LOCK.lock().await;
     let pool = prepare_database().await;
     let fixture = seed_bookable_listing(&pool, "blocked", "bookable").await;
+    let state = app_state(pool.clone());
 
-    let request = book_stay_request(fixture.reservation_id, fixture.guest_id, fixture.listing_id);
-    let response = process(request, &pool, &Clock::default())
+    let request = book_stay_request(fixture.guest_id, fixture.listing_id);
+    let response = process(request, &state)
         .await
         .expect("process should not fail technically");
 
@@ -85,9 +94,10 @@ async fn rejects_when_listing_is_disabled() {
     let _guard = TEST_DATABASE_LOCK.lock().await;
     let pool = prepare_database().await;
     let fixture = seed_bookable_listing(&pool, "eligible", "disabled").await;
+    let state = app_state(pool.clone());
 
-    let request = book_stay_request(fixture.reservation_id, fixture.guest_id, fixture.listing_id);
-    let response = process(request, &pool, &Clock::default())
+    let request = book_stay_request(fixture.guest_id, fixture.listing_id);
+    let response = process(request, &state)
         .await
         .expect("process should not fail technically");
 
@@ -103,6 +113,7 @@ async fn rejects_when_requested_night_is_already_unavailable() {
     let _guard = TEST_DATABASE_LOCK.lock().await;
     let pool = prepare_database().await;
     let fixture = seed_bookable_listing(&pool, "eligible", "bookable").await;
+    let state = app_state(pool.clone());
 
     sqlx::query(
         r#"
@@ -116,13 +127,13 @@ async fn rejects_when_requested_night_is_already_unavailable() {
         "#,
     )
     .bind(fixture.listing_id)
-    .bind(date(2026, 7, 2))
+    .bind(date(2026, 8, 2))
     .execute(&pool)
     .await
     .expect("host block should be inserted");
 
-    let request = book_stay_request(fixture.reservation_id, fixture.guest_id, fixture.listing_id);
-    let response = process(request, &pool, &Clock::default())
+    let request = book_stay_request(fixture.guest_id, fixture.listing_id);
+    let response = process(request, &state)
         .await
         .expect("process should not fail technically");
 
@@ -143,19 +154,17 @@ async fn two_overlapping_booking_requests_cannot_both_confirm() {
     let _guard = TEST_DATABASE_LOCK.lock().await;
     let pool = prepare_database().await;
     let fixture = seed_bookable_listing(&pool, "eligible", "bookable").await;
+    let state = app_state(pool.clone());
 
-    let first_request =
-        book_stay_request(fixture.reservation_id, fixture.guest_id, fixture.listing_id);
-    let second_request = book_stay_request(uuid(90), fixture.guest_id, fixture.listing_id);
+    let first_request = book_stay_request(fixture.guest_id, fixture.listing_id);
+    let second_request = book_stay_request(fixture.guest_id, fixture.listing_id);
 
-    let first_pool = pool.clone();
-    let second_pool = pool.clone();
-    let first_clock = Clock::default();
-    let second_clock = Clock::default();
+    let first_state = state.clone();
+    let second_state = state.clone();
 
     let (first, second) = tokio::join!(
-        process(first_request, &first_pool, &first_clock),
-        process(second_request, &second_pool, &second_clock)
+        process(first_request, &first_state),
+        process(second_request, &second_state)
     );
 
     let responses = vec![
@@ -230,7 +239,6 @@ fn database_url() -> String {
 struct BookingFixture {
     guest_id: Uuid,
     listing_id: Uuid,
-    reservation_id: Uuid,
 }
 
 async fn seed_bookable_listing(
@@ -241,7 +249,6 @@ async fn seed_bookable_listing(
     let fixture = BookingFixture {
         guest_id: uuid(1),
         listing_id: uuid(2),
-        reservation_id: uuid(3),
     };
 
     sqlx::query(
@@ -280,17 +287,27 @@ async fn seed_bookable_listing(
     fixture
 }
 
-fn book_stay_request(reservation_id: Uuid, guest_id: Uuid, listing_id: Uuid) -> BookStay {
+fn book_stay_request(guest_id: Uuid, listing_id: Uuid) -> BookStay {
     BookStay {
-        reservation_id,
         guest_id,
         listing_id,
         stay: Stay {
-            check_in: date(2026, 7, 1),
-            check_out: date(2026, 7, 4),
+            check_in: date(2026, 8, 1),
+            check_out: date(2026, 8, 4),
         },
         guest_count: 2,
     }
+}
+
+fn app_state(pool: PgPool) -> AppState {
+    AppState::new(pool, Providers::new())
+}
+
+async fn stored_reservation_id(pool: &PgPool) -> Uuid {
+    sqlx::query_scalar("SELECT id FROM reservations")
+        .fetch_one(pool)
+        .await
+        .expect("reservation id should be readable")
 }
 
 async fn unavailable_nights(pool: &PgPool, listing_id: Uuid) -> Vec<NaiveDate> {

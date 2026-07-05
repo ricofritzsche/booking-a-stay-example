@@ -7,7 +7,7 @@ fn rejects_guest_count_zero() {
     request.guest_count = 0;
 
     assert_eq!(
-        decide(&request, &valid_context(), confirmed_at()),
+        decide(&request, &valid_context(), reservation_id(), confirmed_at()),
         Err(BookingRejected::InvalidGuestCount)
     );
 }
@@ -18,7 +18,7 @@ fn rejects_missing_guest() {
     context.guest = None;
 
     assert_eq!(
-        decide(&valid_request(), &context, confirmed_at()),
+        decide(&valid_request(), &context, reservation_id(), confirmed_at()),
         Err(BookingRejected::GuestNotFound)
     );
 }
@@ -29,7 +29,7 @@ fn rejects_blocked_guest() {
     context.guest = Some(GuestBookingEligibility::Blocked);
 
     assert_eq!(
-        decide(&valid_request(), &context, confirmed_at()),
+        decide(&valid_request(), &context, reservation_id(), confirmed_at()),
         Err(BookingRejected::GuestBlocked)
     );
 }

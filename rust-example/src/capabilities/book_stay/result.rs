@@ -17,6 +17,7 @@ pub struct ReservationConfirmed {
 pub enum BookingRejected {
     InvalidDateRange,
     InvalidGuestCount,
+    StayStartsInPast,
     GuestNotFound,
     GuestBlocked,
     ListingNotFound,

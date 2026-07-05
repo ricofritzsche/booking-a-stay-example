@@ -1,7 +1,6 @@
-use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::providers::Clock;
+use crate::application_state::AppState;
 
 use super::decide::decide;
 use super::request::BookStay;
@@ -27,10 +26,9 @@ pub enum ProcessBookStayError {
 
 pub async fn process(
     request: BookStay,
-    pool: &PgPool,
-    clock: &Clock,
+    state: &AppState,
 ) -> Result<BookStayResponse, ProcessBookStayError> {
-    let mut tx = pool.begin().await?;
+    let mut tx = state.pool.begin().await?;
 
     let loaded_state = match load_booking_state(&mut tx, &request).await {
         Ok(loaded_state) => loaded_state,
@@ -41,9 +39,10 @@ pub async fn process(
     };
 
     let context = loaded_state.into_context();
-    let confirmed_at = clock.now();
+    let reservation_id = state.providers.ids.new_id();
+    let now = state.providers.clock.now();
 
-    let confirmed = match decide(&request, &context, confirmed_at) {
+    let confirmed = match decide(&request, &context, reservation_id, now) {
         Ok(confirmed) => confirmed,
         Err(rejection) => {
             tx.rollback().await?;

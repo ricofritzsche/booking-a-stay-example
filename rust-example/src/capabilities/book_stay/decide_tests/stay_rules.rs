@@ -7,7 +7,7 @@ fn rejects_too_many_guests() {
     request.guest_count = 5;
 
     assert_eq!(
-        decide(&request, &valid_context(), confirmed_at()),
+        decide(&request, &valid_context(), reservation_id(), confirmed_at()),
         Err(BookingRejected::TooManyGuests)
     );
 }
@@ -24,7 +24,7 @@ fn rejects_stay_shorter_than_min_nights() {
         .min_nights = 2;
 
     assert_eq!(
-        decide(&request, &context, confirmed_at()),
+        decide(&request, &context, reservation_id(), confirmed_at()),
         Err(BookingRejected::StayTooShort)
     );
 }
@@ -41,7 +41,7 @@ fn rejects_stay_longer_than_max_nights() {
         .max_nights = Some(3);
 
     assert_eq!(
-        decide(&request, &context, confirmed_at()),
+        decide(&request, &context, reservation_id(), confirmed_at()),
         Err(BookingRejected::StayTooLong)
     );
 }

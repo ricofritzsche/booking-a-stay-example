@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use uuid::Uuid;
 
 use super::context::{
     BookingContext, GuestBookingEligibility, ListingBookingSettings, ListingBookingStatus,
@@ -9,7 +10,8 @@ use super::result::{BookingRejected, ReservationConfirmed};
 pub fn decide(
     request: &BookStay,
     context: &BookingContext,
-    confirmed_at: DateTime<Utc>,
+    reservation_id: Uuid,
+    now: DateTime<Utc>,
 ) -> Result<ReservationConfirmed, BookingRejected> {
     if request.stay.check_in >= request.stay.check_out {
         return Err(BookingRejected::InvalidDateRange);
@@ -17,6 +19,10 @@ pub fn decide(
 
     if request.guest_count == 0 {
         return Err(BookingRejected::InvalidGuestCount);
+    }
+
+    if request.stay.check_in < now.date_naive() {
+        return Err(BookingRejected::StayStartsInPast);
     }
 
     match context.guest {
@@ -41,12 +47,12 @@ pub fn decide(
     }
 
     Ok(ReservationConfirmed {
-        reservation_id: request.reservation_id,
+        reservation_id,
         guest_id: request.guest_id,
         listing_id: request.listing_id,
         stay: request.stay,
         guest_count: request.guest_count,
-        confirmed_at,
+        confirmed_at: now,
     })
 }
 

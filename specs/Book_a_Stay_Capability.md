@@ -50,6 +50,8 @@ guest count
 
 The request must describe a real stay. The check-in date must be before the check-out date. The guest count must be greater than zero. The requested stay must fit the rules of the listing.
 
+The check-in date must not be in the past. In the first version, same-day booking is allowed. A stay can start today or in the future, but not before the current booking date.
+
 The request itself does not guarantee that a reservation can be confirmed. It only expresses the guest’s intent.
 
 ## What the capability has to evaluate
@@ -61,6 +63,8 @@ It must know whether the guest exists and is allowed to book. A blocked guest ca
 It must know whether the listing exists and can receive bookings. A disabled listing cannot be booked, even if the requested nights are free.
 
 It must check the listing’s booking rules. A listing may define a maximum guest count, a minimum number of nights, or a maximum stay length.
+
+It must check whether the stay can still be booked at the current booking date. A stay cannot be confirmed when the check-in date is already in the past.
 
 It must check whether the requested nights are available. A reservation cannot be confirmed when another confirmed reservation already occupies one of the requested nights or the host has blocked one of the requested nights.
 
@@ -76,6 +80,7 @@ the guest is eligible to book
 the listing exists
 the listing is bookable
 the date range is valid
+the check-in date is not in the past
 the guest count is valid
 the stay respects the listing’s rules
 none of the requested nights are unavailable because of a confirmed reservation or host block
@@ -97,6 +102,7 @@ guest is blocked
 listing not found
 listing is disabled
 invalid date range
+stay starts in the past
 too many guests
 stay is too short
 stay is too long
@@ -148,6 +154,8 @@ A guest tries to book the same listing from July 3 to July 6. July 3 is already 
 
 A blocked guest tries to book a free listing. The nights are available, but the guest is not allowed to book. The system rejects the booking because the guest is blocked.
 
+A guest tries to book a listing for dates that have already passed. The listing may be available and the guest may be eligible, but the system rejects the booking because the stay starts in the past.
+
 A guest tries to book a listing for six people, but the listing allows a maximum of four guests. The nights may be available, but the stay violates the listing’s rules. The system rejects the booking because there are too many guests.
 
 A guest books from July 4 to July 7 after another guest checks out on July 4. This can be valid because the first reservation does not occupy the check-out day.
@@ -178,6 +186,6 @@ These capabilities are separate because their intent is different. But they infl
 
 The Book a Stay capability confirms a reservation only when the full booking situation allows it.
 
-It starts with the guest’s intent to book a stay. It evaluates the guest, the listing, the requested date range, the guest count, the listing rules, and the availability of the requested nights. If all conditions are valid, the reservation is confirmed. If not, the booking is rejected with a clear business reason.
+It starts with the guest’s intent to book a stay. It evaluates the guest, the listing, the requested date range, the current booking date, the guest count, the listing rules, and the availability of the requested nights. If all conditions are valid, the reservation is confirmed. If not, the booking is rejected with a clear business reason.
 
 The capability is intentionally small, but it is not trivial. It shows the central nature of stay booking: a reservation is only valid when the decision behind it was made against the correct booking situation.

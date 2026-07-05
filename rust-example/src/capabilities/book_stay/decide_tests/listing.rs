@@ -7,7 +7,7 @@ fn rejects_missing_listing() {
     context.listing = None;
 
     assert_eq!(
-        decide(&valid_request(), &context, confirmed_at()),
+        decide(&valid_request(), &context, reservation_id(), confirmed_at()),
         Err(BookingRejected::ListingNotFound)
     );
 }
@@ -22,7 +22,7 @@ fn rejects_disabled_listing() {
         .booking_status = ListingBookingStatus::Disabled;
 
     assert_eq!(
-        decide(&valid_request(), &context, confirmed_at()),
+        decide(&valid_request(), &context, reservation_id(), confirmed_at()),
         Err(BookingRejected::ListingDisabled)
     );
 }

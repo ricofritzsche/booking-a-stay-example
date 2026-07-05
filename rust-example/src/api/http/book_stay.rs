@@ -12,8 +12,9 @@ use tracing::error;
 use uuid::Uuid;
 
 use crate::application_state::AppState;
-use crate::capabilities::book_stay;
-use crate::capabilities::book_stay::process::{BookStayResponse, ProcessBookStayError};
+use crate::capabilities::book_stay::process::{
+    BookStayResponse, ProcessBookStayError, process as process_book_stay,
+};
 use crate::capabilities::book_stay::request::{BookStay, Stay};
 use crate::capabilities::book_stay::result::BookingRejected;
 
@@ -42,7 +43,6 @@ pub async fn handle(
     Json(body): Json<BookStayRequestBody>,
 ) -> Response {
     let request = BookStay {
-        reservation_id: state.providers.ids.new_id(),
         guest_id: body.guest_id,
         listing_id: body.listing_id,
         stay: Stay {
@@ -52,7 +52,7 @@ pub async fn handle(
         guest_count: body.guest_count,
     };
 
-    match book_stay::process::process(request, &state.pool, &state.providers.clock).await {
+    match process_book_stay(request, &state).await {
         Ok(BookStayResponse::Confirmed { reservation_id }) => (
             StatusCode::CREATED,
             Json(BookStayConfirmedBody { reservation_id }),
@@ -96,6 +96,11 @@ fn rejection_http_mapping(rejection: BookingRejected) -> (StatusCode, &'static s
             StatusCode::UNPROCESSABLE_ENTITY,
             "invalid_guest_count",
             "guest count must be greater than zero",
+        ),
+        BookingRejected::StayStartsInPast => (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "stay_starts_in_past",
+            "check-in date must not be in the past",
         ),
         BookingRejected::GuestNotFound => {
             (StatusCode::NOT_FOUND, "guest_not_found", "guest not found")
@@ -180,6 +185,14 @@ mod tests {
                 StatusCode::UNPROCESSABLE_ENTITY,
                 "invalid_date_range",
                 "check-out must be after check-in"
+            )
+        );
+        assert_eq!(
+            rejection_http_mapping(BookingRejected::StayStartsInPast),
+            (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "stay_starts_in_past",
+                "check-in date must not be in the past"
             )
         );
     }
