@@ -11,6 +11,9 @@ pub struct ReservationConfirmed {
     pub stay: Stay,
     pub guest_count: u32,
     pub confirmed_at: DateTime<Utc>,
+    pub max_guests_at_confirmation: u32,
+    pub min_nights_at_confirmation: u32,
+    pub max_nights_at_confirmation: Option<u32>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

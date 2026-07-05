@@ -53,6 +53,9 @@ pub fn decide(
         stay: request.stay,
         guest_count: request.guest_count,
         confirmed_at: now,
+        max_guests_at_confirmation: listing.max_guests,
+        min_nights_at_confirmation: listing.min_nights,
+        max_nights_at_confirmation: listing.max_nights,
     })
 }
 

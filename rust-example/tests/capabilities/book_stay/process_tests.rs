@@ -49,6 +49,37 @@ async fn confirms_reservation_and_records_listing_unavailable_nights() {
 }
 
 #[tokio::test]
+async fn records_booking_terms_used_at_confirmation() {
+    let _guard = TEST_DATABASE_LOCK.lock().await;
+    let pool = prepare_database().await;
+    let fixture = seed_listing_with_terms(&pool, "eligible", "bookable", 5, 2, Some(7)).await;
+    let state = app_state(pool.clone());
+
+    let mut request = book_stay_request(fixture.guest_id, fixture.listing_id);
+    request.guest_count = 5;
+
+    let response = process(request, &state)
+        .await
+        .expect("process should not fail technically");
+
+    assert!(
+        matches!(response, BookStayResponse::Confirmed { .. }),
+        "expected confirmation, got {response:?}"
+    );
+
+    let max_guests_at_confirmation = stored_max_guests_at_confirmation(&pool).await;
+    assert_eq!(max_guests_at_confirmation, 5);
+
+    sqlx::query("UPDATE listings SET max_guests = 4 WHERE id = $1")
+        .bind(fixture.listing_id)
+        .execute(&pool)
+        .await
+        .expect("listing max guests should be updated");
+
+    assert_eq!(stored_max_guests_at_confirmation(&pool).await, 5);
+}
+
+#[tokio::test]
 async fn does_not_occupy_the_check_out_date() {
     let _guard = TEST_DATABASE_LOCK.lock().await;
     let pool = prepare_database().await;
@@ -246,6 +277,17 @@ async fn seed_bookable_listing(
     guest_eligibility: &str,
     listing_status: &str,
 ) -> BookingFixture {
+    seed_listing_with_terms(pool, guest_eligibility, listing_status, 4, 2, Some(7)).await
+}
+
+async fn seed_listing_with_terms(
+    pool: &PgPool,
+    guest_eligibility: &str,
+    listing_status: &str,
+    max_guests: i32,
+    min_nights: i32,
+    max_nights: Option<i32>,
+) -> BookingFixture {
     let fixture = BookingFixture {
         guest_id: uuid(1),
         listing_id: uuid(2),
@@ -274,11 +316,14 @@ async fn seed_bookable_listing(
             max_nights,
             booking_status
         )
-        VALUES ($1, $2, 'Test Listing', 4, 2, 7, $3)
+        VALUES ($1, $2, 'Test Listing', $3, $4, $5, $6)
         "#,
     )
     .bind(fixture.listing_id)
     .bind(uuid(4))
+    .bind(max_guests)
+    .bind(min_nights)
+    .bind(max_nights)
     .bind(listing_status)
     .execute(pool)
     .await
@@ -308,6 +353,13 @@ async fn stored_reservation_id(pool: &PgPool) -> Uuid {
         .fetch_one(pool)
         .await
         .expect("reservation id should be readable")
+}
+
+async fn stored_max_guests_at_confirmation(pool: &PgPool) -> i32 {
+    sqlx::query_scalar("SELECT max_guests_at_confirmation FROM reservations")
+        .fetch_one(pool)
+        .await
+        .expect("reservation max guests at confirmation should be readable")
 }
 
 async fn unavailable_nights(pool: &PgPool, listing_id: Uuid) -> Vec<NaiveDate> {

@@ -141,10 +141,13 @@ check-in date
 check-out date
 guest count
 confirmation time
+booking terms used for confirmation
 status: confirmed
 ```
 
 From the domain perspective, the important result is not that data was written. The important result is that the guest now has a confirmed reservation and the requested nights are no longer available for another overlapping reservation.
+
+The confirmed reservation records the relevant booking terms used for the decision, such as maximum guests, minimum nights, and maximum nights. This keeps the reservation understandable even if the listing rules change later.
 
 ## Business examples
 
@@ -157,6 +160,8 @@ A blocked guest tries to book a free listing. The nights are available, but the 
 A guest tries to book a listing for dates that have already passed. The listing may be available and the guest may be eligible, but the system rejects the booking because the stay starts in the past.
 
 A guest tries to book a listing for six people, but the listing allows a maximum of four guests. The nights may be available, but the stay violates the listing’s rules. The system rejects the booking because there are too many guests.
+
+A guest books a listing for five guests while the listing allows five guests. Later the host reduces the maximum guest count to four. The existing reservation remains valid because it was confirmed under the earlier booking terms. The reservation records those terms so the decision remains understandable later.
 
 A guest books from July 4 to July 7 after another guest checks out on July 4. This can be valid because the first reservation does not occupy the check-out day.
 

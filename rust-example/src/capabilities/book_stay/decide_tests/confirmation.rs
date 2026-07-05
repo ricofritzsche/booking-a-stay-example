@@ -19,6 +19,54 @@ fn confirms_reservation_when_all_conditions_are_valid() {
             stay: request.stay,
             guest_count: request.guest_count,
             confirmed_at,
+            max_guests_at_confirmation: 4,
+            min_nights_at_confirmation: 1,
+            max_nights_at_confirmation: Some(10),
         })
     );
+}
+
+#[test]
+fn confirmed_reservation_includes_max_guests_at_confirmation() {
+    let mut context = valid_context();
+    context
+        .listing
+        .as_mut()
+        .expect("valid fixture has listing")
+        .max_guests = 5;
+
+    let result = decide(&valid_request(), &context, reservation_id(), confirmed_at())
+        .expect("reservation should be confirmed");
+
+    assert_eq!(result.max_guests_at_confirmation, 5);
+}
+
+#[test]
+fn confirmed_reservation_includes_min_nights_at_confirmation() {
+    let mut context = valid_context();
+    context
+        .listing
+        .as_mut()
+        .expect("valid fixture has listing")
+        .min_nights = 3;
+
+    let result = decide(&valid_request(), &context, reservation_id(), confirmed_at())
+        .expect("reservation should be confirmed");
+
+    assert_eq!(result.min_nights_at_confirmation, 3);
+}
+
+#[test]
+fn confirmed_reservation_includes_max_nights_at_confirmation() {
+    let mut context = valid_context();
+    context
+        .listing
+        .as_mut()
+        .expect("valid fixture has listing")
+        .max_nights = Some(6);
+
+    let result = decide(&valid_request(), &context, reservation_id(), confirmed_at())
+        .expect("reservation should be confirmed");
+
+    assert_eq!(result.max_nights_at_confirmation, Some(6));
 }

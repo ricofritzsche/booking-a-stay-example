@@ -155,6 +155,18 @@ pub async fn record_reservation_confirmed(
             "guest_count exceeds PostgreSQL INTEGER".to_owned(),
         )
     })?;
+    let max_guests_at_confirmation = u32_to_i32(
+        "max_guests_at_confirmation",
+        confirmed.max_guests_at_confirmation,
+    )?;
+    let min_nights_at_confirmation = u32_to_i32(
+        "min_nights_at_confirmation",
+        confirmed.min_nights_at_confirmation,
+    )?;
+    let max_nights_at_confirmation = confirmed
+        .max_nights_at_confirmation
+        .map(|value| u32_to_i32("max_nights_at_confirmation", value))
+        .transpose()?;
 
     sqlx::query(
         r#"
@@ -166,9 +178,12 @@ pub async fn record_reservation_confirmed(
             check_out,
             guest_count,
             status,
-            confirmed_at
+            confirmed_at,
+            max_guests_at_confirmation,
+            min_nights_at_confirmation,
+            max_nights_at_confirmation
         )
-        VALUES ($1, $2, $3, $4, $5, $6, 'confirmed', $7)
+        VALUES ($1, $2, $3, $4, $5, $6, 'confirmed', $7, $8, $9, $10)
         "#,
     )
     .bind(confirmed.reservation_id)
@@ -178,6 +193,9 @@ pub async fn record_reservation_confirmed(
     .bind(confirmed.stay.check_out)
     .bind(guest_count)
     .bind(confirmed.confirmed_at)
+    .bind(max_guests_at_confirmation)
+    .bind(min_nights_at_confirmation)
+    .bind(max_nights_at_confirmation)
     .execute(&mut **tx)
     .await
     .map_err(RecordReservationError::Database)?;
@@ -231,6 +249,14 @@ fn i32_to_u32(field: &str, value: i32) -> Result<u32, LoadBookingStateError> {
     u32::try_from(value).map_err(|_| {
         LoadBookingStateError::InvalidStoredValue(format!(
             "{field} must be representable as u32: {value}"
+        ))
+    })
+}
+
+fn u32_to_i32(field: &str, value: u32) -> Result<i32, RecordReservationError> {
+    i32::try_from(value).map_err(|_| {
+        RecordReservationError::InvalidStoredValue(format!(
+            "{field} exceeds PostgreSQL INTEGER: {value}"
         ))
     })
 }
