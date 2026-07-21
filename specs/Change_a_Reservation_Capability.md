@@ -186,7 +186,7 @@ Change a Reservation is closely related to **Book a Stay**, because the changed 
 
 It is also related to **Cancel a Reservation**, because changing a reservation may release nights that were previously occupied.
 
-It remains separate from **Manage Listing Availability**. A host can block nights independently from reservations. A reservation change must respect those blocks, but it does not define them.
+It remains separate from **Manage Listing Availability**. A host can block nights independently of reservations. A reservation change must respect those blocks, but it does not define them.
 
 It remains separate from **Manage Booking Eligibility**. A guest may be blocked from making new reservations, and a listing may be disabled from receiving bookings. These conditions can affect whether a reservation may be changed, but they are controlled by a different capability.
 
