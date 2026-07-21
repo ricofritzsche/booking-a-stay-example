@@ -1,8 +1,8 @@
 using System.Text.Json;
 using BookingAStay.ApplicationState.Db;
 using BookingAStay.Api.Http;
+using BookingAStay.Providers;
 using Npgsql;
-using ProvidersBundle = BookingAStay.Providers.Providers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +16,7 @@ var connectionString = builder.Configuration.GetConnectionString("ApplicationSta
     ?? throw new InvalidOperationException("Connection string 'ApplicationState' is required.");
 
 builder.Services.AddSingleton(_ => new NpgsqlDataSourceBuilder(connectionString).Build());
-builder.Services.AddSingleton<ProvidersBundle>();
+builder.Services.AddSingleton<ProviderBundle>();
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;

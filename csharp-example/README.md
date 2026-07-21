@@ -6,6 +6,10 @@ Requires the .NET 10 SDK.
 
 Database migrations run through DbUp at application startup. A local development database created before this DbUp migration must be dropped and recreated once because the old `schema_migrations` journal does not carry over to DbUp's `schemaversions` journal.
 
+## Naming
+
+The command record is `BookStayRequest` (not `BookStay` as in the Rust example) to avoid a C# type-versus-namespace collision with `Capabilities.BookStay`.
+
 ## CLI
 
 ```bash

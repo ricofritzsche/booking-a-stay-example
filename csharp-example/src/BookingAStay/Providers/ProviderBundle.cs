@@ -1,8 +1,8 @@
 namespace BookingAStay.Providers;
 
-public sealed record Providers(Clock Clock, IdGenerator Ids)
+public sealed record ProviderBundle(Clock Clock, IdGenerator Ids)
 {
-    public Providers()
+    public ProviderBundle()
         : this(new Clock(), new IdGenerator())
     {
     }

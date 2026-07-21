@@ -86,35 +86,39 @@ public static class Sql
             },
             transaction);
 
-        for (var night = confirmed.Stay.CheckIn; night < confirmed.Stay.CheckOut; night = night.AddDays(1))
-        {
-            const string unavailableNightSql = """
-                INSERT INTO listing_unavailable_nights (
-                    listing_id,
-                    night,
-                    unavailability_type,
-                    reservation_id
-                )
-                VALUES (@listing_id, @night, 'reservation', @reservation_id)
-                """;
+        var nights = Enumerable.Range(
+                0,
+                confirmed.Stay.CheckOut.DayNumber - confirmed.Stay.CheckIn.DayNumber)
+            .Select(offset => confirmed.Stay.CheckIn.AddDays(offset))
+            .ToArray();
 
-            try
-            {
-                await connection.ExecuteAsync(
-                    unavailableNightSql,
-                    new
-                    {
-                        listing_id = confirmed.ListingId,
-                        night,
-                        reservation_id = confirmed.ReservationId,
-                        cancellationToken,
-                    },
-                    transaction);
-            }
-            catch (PostgresException exception) when (exception.SqlState == PostgresErrorCodes.UniqueViolation)
-            {
-                throw new ListingUnavailableException();
-            }
+        const string unavailableNightsSql = """
+            INSERT INTO listing_unavailable_nights (
+                listing_id,
+                night,
+                unavailability_type,
+                reservation_id
+            )
+            SELECT @listing_id, night, 'reservation', @reservation_id
+            FROM unnest(@nights) AS night
+            """;
+
+        try
+        {
+            await connection.ExecuteAsync(
+                unavailableNightsSql,
+                new
+                {
+                    listing_id = confirmed.ListingId,
+                    nights,
+                    reservation_id = confirmed.ReservationId,
+                    cancellationToken,
+                },
+                transaction);
+        }
+        catch (PostgresException exception) when (exception.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            throw new ListingUnavailableException();
         }
     }
 

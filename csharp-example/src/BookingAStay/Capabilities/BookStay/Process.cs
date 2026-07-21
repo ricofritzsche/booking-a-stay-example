@@ -1,6 +1,5 @@
 using BookingAStay.Providers;
 using Npgsql;
-using ProvidersBundle = BookingAStay.Providers.Providers;
 
 namespace BookingAStay.Capabilities.BookStay;
 
@@ -20,7 +19,7 @@ public static class Processor
     public static async Task<BookStayResponse> ProcessBookStay(
         BookStayRequest request,
         NpgsqlDataSource dataSource,
-        ProvidersBundle providers,
+        ProviderBundle providers,
         CancellationToken cancellationToken = default)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);

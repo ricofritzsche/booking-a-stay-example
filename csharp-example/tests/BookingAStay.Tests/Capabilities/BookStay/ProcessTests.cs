@@ -1,7 +1,7 @@
 using BookingAStay.ApplicationState.Db;
 using BookingAStay.Capabilities.BookStay;
+using BookingAStay.Providers;
 using Npgsql;
-using ProvidersBundle = BookingAStay.Providers.Providers;
 
 namespace BookingAStay.Tests.Capabilities.BookStay;
 
@@ -22,7 +22,7 @@ public sealed class ProcessTests
         var fixture = await SeedBookableListing(dataSource, "eligible", "bookable");
 
         var request = BookStayRequest(fixture.GuestId, fixture.ListingId);
-        var response = await Processor.ProcessBookStay(request, dataSource, new ProvidersBundle());
+        var response = await Processor.ProcessBookStay(request, dataSource, new ProviderBundle());
 
         var confirmed = Assert.IsType<BookStayResponse.Confirmed>(response);
 
@@ -40,7 +40,7 @@ public sealed class ProcessTests
         var fixture = await SeedListingWithTerms(dataSource, "eligible", "bookable", 5, 2, 7);
 
         var request = BookStayRequest(fixture.GuestId, fixture.ListingId) with { GuestCount = 5 };
-        var response = await Processor.ProcessBookStay(request, dataSource, new ProvidersBundle());
+        var response = await Processor.ProcessBookStay(request, dataSource, new ProviderBundle());
 
         Assert.IsType<BookStayResponse.Confirmed>(response);
         Assert.Equal(5, await StoredMaxGuestsAtConfirmation(dataSource));
@@ -62,7 +62,7 @@ public sealed class ProcessTests
         var fixture = await SeedBookableListing(dataSource, "eligible", "bookable");
 
         var request = BookStayRequest(fixture.GuestId, fixture.ListingId);
-        await Processor.ProcessBookStay(request, dataSource, new ProvidersBundle());
+        await Processor.ProcessBookStay(request, dataSource, new ProviderBundle());
 
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = new NpgsqlCommand(
@@ -80,7 +80,7 @@ public sealed class ProcessTests
         var fixture = await SeedBookableListing(dataSource, "blocked", "bookable");
 
         var request = BookStayRequest(fixture.GuestId, fixture.ListingId);
-        var response = await Processor.ProcessBookStay(request, dataSource, new ProvidersBundle());
+        var response = await Processor.ProcessBookStay(request, dataSource, new ProviderBundle());
 
         Assert.Equal(new BookStayResponse.Rejected(BookingRejection.GuestBlocked), response);
         await AssertNoReservationOrUnavailableNights(dataSource);
@@ -93,7 +93,7 @@ public sealed class ProcessTests
         var fixture = await SeedBookableListing(dataSource, "eligible", "disabled");
 
         var request = BookStayRequest(fixture.GuestId, fixture.ListingId);
-        var response = await Processor.ProcessBookStay(request, dataSource, new ProvidersBundle());
+        var response = await Processor.ProcessBookStay(request, dataSource, new ProviderBundle());
 
         Assert.Equal(new BookStayResponse.Rejected(BookingRejection.ListingDisabled), response);
         await AssertNoReservationOrUnavailableNights(dataSource);
@@ -124,7 +124,7 @@ public sealed class ProcessTests
         }
 
         var request = BookStayRequest(fixture.GuestId, fixture.ListingId);
-        var response = await Processor.ProcessBookStay(request, dataSource, new ProvidersBundle());
+        var response = await Processor.ProcessBookStay(request, dataSource, new ProviderBundle());
 
         Assert.Equal(new BookStayResponse.Rejected(BookingRejection.ListingUnavailable), response);
         Assert.Equal(0, await Count(dataSource, "reservations"));
@@ -138,7 +138,7 @@ public sealed class ProcessTests
 
         var firstRequest = BookStayRequest(fixture.GuestId, fixture.ListingId);
         var secondRequest = BookStayRequest(fixture.GuestId, fixture.ListingId);
-        var providers = new ProvidersBundle();
+        var providers = new ProviderBundle();
 
         var responses = await Task.WhenAll(
             Processor.ProcessBookStay(firstRequest, dataSource, providers),
@@ -160,7 +160,7 @@ public sealed class ProcessTests
         await using var dataSource = await PrepareDatabase();
         var fixture = await SeedBookableListing(dataSource, "eligible", "bookable");
         var secondGuestId = await SeedSecondGuest(dataSource);
-        var providers = new ProvidersBundle();
+        var providers = new ProviderBundle();
 
         var firstRequest = BookStayRequest(fixture.GuestId, fixture.ListingId);
         var secondRequest = BookStayRequest(secondGuestId, fixture.ListingId) with
@@ -194,7 +194,7 @@ public sealed class ProcessTests
         await using var dataSource = await PrepareDatabase();
         var fixture = await SeedBookableListing(dataSource, "eligible", "bookable");
         var secondGuestId = await SeedSecondGuest(dataSource);
-        var providers = new ProvidersBundle();
+        var providers = new ProviderBundle();
 
         var firstRequest = BookStayRequest(fixture.GuestId, fixture.ListingId);
         var secondRequest = BookStayRequest(secondGuestId, fixture.ListingId) with
@@ -257,7 +257,7 @@ public sealed class ProcessTests
         int minNights,
         int? maxNights)
     {
-        var fixture = new BookingFixture(GuidFromUInt128(1), GuidFromUInt128(2));
+        var fixture = new BookingFixture(GuidFromByte(1), GuidFromByte(2));
 
         await using var connection = await dataSource.OpenConnectionAsync();
 
@@ -289,7 +289,7 @@ public sealed class ProcessTests
             connection))
         {
             listingCommand.Parameters.AddWithValue("id", fixture.ListingId);
-            listingCommand.Parameters.AddWithValue("host_id", GuidFromUInt128(4));
+            listingCommand.Parameters.AddWithValue("host_id", GuidFromByte(4));
             listingCommand.Parameters.AddWithValue("max_guests", maxGuests);
             listingCommand.Parameters.AddWithValue("min_nights", minNights);
             listingCommand.Parameters.AddWithValue("max_nights", (object?)maxNights ?? DBNull.Value);
@@ -302,7 +302,7 @@ public sealed class ProcessTests
 
     private static async Task<Guid> SeedSecondGuest(NpgsqlDataSource dataSource)
     {
-        var guestId = GuidFromUInt128(3);
+        var guestId = GuidFromByte(3);
 
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = new NpgsqlCommand(
@@ -389,7 +389,7 @@ public sealed class ProcessTests
         return new DateOnly(year, month, day);
     }
 
-    private static Guid GuidFromUInt128(uint value)
+    private static Guid GuidFromByte(uint value)
     {
         Span<byte> bytes = stackalloc byte[16];
         bytes[15] = (byte)value;

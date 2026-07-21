@@ -1,6 +1,6 @@
 using BookingAStay.Capabilities.BookStay;
+using BookingAStay.Providers;
 using Npgsql;
-using ProvidersBundle = BookingAStay.Providers.Providers;
 
 namespace BookingAStay.Api.Http;
 
@@ -20,7 +20,7 @@ public static class BookStayEndpoint
     public static async Task<IResult> Handle(
         BookStayRequestBody body,
         NpgsqlDataSource dataSource,
-        ProvidersBundle providers,
+        ProviderBundle providers,
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
@@ -47,7 +47,7 @@ public static class BookStayEndpoint
                 _ => throw new InvalidOperationException("Unknown book stay response."),
             };
         }
-        catch (Exception exception)
+        catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
         {
             loggerFactory.CreateLogger(typeof(BookStayEndpoint).FullName!)
                 .LogError(exception, "Book stay request failed with a technical error");

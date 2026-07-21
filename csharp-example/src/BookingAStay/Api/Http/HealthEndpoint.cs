@@ -18,7 +18,7 @@ public static class HealthEndpoint
 
             return Results.Ok(new HealthResponse("ok", "up"));
         }
-        catch
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
         {
             return Results.Json(
                 new HealthResponse("degraded", "down"),

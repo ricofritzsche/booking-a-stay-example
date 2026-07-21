@@ -7,15 +7,15 @@ internal static class Fixtures
     public static BookStayRequest ValidRequest()
     {
         return new BookStayRequest(
-            GuidFromUInt128(2),
-            GuidFromUInt128(3),
+            GuidFromByte(2),
+            GuidFromByte(3),
             Stay(1, 4),
             2);
     }
 
     public static Guid ReservationId()
     {
-        return GuidFromUInt128(1);
+        return GuidFromByte(1);
     }
 
     public static BookingContext ValidContext()
@@ -50,7 +50,7 @@ internal static class Fixtures
         return DateTimeOffset.Parse("2026-07-05T12:00:00Z");
     }
 
-    public static Guid GuidFromUInt128(uint value)
+    public static Guid GuidFromByte(uint value)
     {
         Span<byte> bytes = stackalloc byte[16];
         bytes[15] = (byte)value;

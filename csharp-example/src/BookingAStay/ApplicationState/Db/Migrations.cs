@@ -1,3 +1,4 @@
+using System.Runtime.ExceptionServices;
 using DbUp;
 
 namespace BookingAStay.ApplicationState.Db;
@@ -20,7 +21,7 @@ public static class Migrations
 
         if (!result.Successful)
         {
-            throw result.Error;
+            ExceptionDispatchInfo.Capture(result.Error).Throw();
         }
     }
 }
