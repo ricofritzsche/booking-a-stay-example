@@ -1,7 +1,7 @@
 using BookingAStay.Capabilities.BookStay;
-using static BookingAStay.Tests.Capabilities.BookStay.DecideTests.Fixtures;
+using static BookingAStay.Tests.Capabilities.BookStay.CoreTests.Fixtures;
 
-namespace BookingAStay.Tests.Capabilities.BookStay.DecideTests;
+namespace BookingAStay.Tests.Capabilities.BookStay.CoreTests;
 
 public sealed class ListingTests
 {
@@ -12,7 +12,7 @@ public sealed class ListingTests
 
         Assert.Equal(
             new BookingOutcome.Rejected(BookingRejection.ListingNotFound),
-            Decider.Decide(ValidRequest(), context, ReservationId(), ConfirmedAt()));
+            Core.BookStay(ValidRequest(), context, ReservationId(), ConfirmedAt()));
     }
 
     [Fact]
@@ -23,6 +23,6 @@ public sealed class ListingTests
 
         Assert.Equal(
             new BookingOutcome.Rejected(BookingRejection.ListingDisabled),
-            Decider.Decide(ValidRequest(), context, ReservationId(), ConfirmedAt()));
+            Core.BookStay(ValidRequest(), context, ReservationId(), ConfirmedAt()));
     }
 }

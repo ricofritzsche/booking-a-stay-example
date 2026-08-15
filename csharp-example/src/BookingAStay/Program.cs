@@ -4,6 +4,7 @@ using BookingAStay.Api.Http;
 using BookingAStay.Providers;
 using Npgsql;
 
+// Composition root: constructs infrastructure, Providers, and HTTP Delivery Mechanisms.
 var builder = WebApplication.CreateBuilder(args);
 
 if (builder.Environment.IsProduction())

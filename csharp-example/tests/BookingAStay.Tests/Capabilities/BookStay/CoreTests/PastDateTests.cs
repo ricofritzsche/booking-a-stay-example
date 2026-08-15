@@ -1,7 +1,7 @@
 using BookingAStay.Capabilities.BookStay;
-using static BookingAStay.Tests.Capabilities.BookStay.DecideTests.Fixtures;
+using static BookingAStay.Tests.Capabilities.BookStay.CoreTests.Fixtures;
 
-namespace BookingAStay.Tests.Capabilities.BookStay.DecideTests;
+namespace BookingAStay.Tests.Capabilities.BookStay.CoreTests;
 
 public sealed class PastDateTests
 {
@@ -12,7 +12,7 @@ public sealed class PastDateTests
 
         Assert.Equal(
             new BookingOutcome.Rejected(BookingRejection.StayStartsInPast),
-            Decider.Decide(request, ValidContext(), ReservationId(), CurrentBookingTime()));
+            Core.BookStay(request, ValidContext(), ReservationId(), CurrentBookingTime()));
     }
 
     [Fact]
@@ -20,7 +20,7 @@ public sealed class PastDateTests
     {
         var request = ValidRequest() with { Stay = new Stay(Date(2026, 7, 5), Date(2026, 7, 7)) };
 
-        var result = Decider.Decide(request, ValidContext(), ReservationId(), CurrentBookingTime());
+        var result = Core.BookStay(request, ValidContext(), ReservationId(), CurrentBookingTime());
 
         Assert.IsType<BookingOutcome.Confirmed>(result);
     }
@@ -30,7 +30,7 @@ public sealed class PastDateTests
     {
         var request = ValidRequest() with { Stay = new Stay(Date(2026, 7, 6), Date(2026, 7, 8)) };
 
-        var result = Decider.Decide(request, ValidContext(), ReservationId(), CurrentBookingTime());
+        var result = Core.BookStay(request, ValidContext(), ReservationId(), CurrentBookingTime());
 
         Assert.IsType<BookingOutcome.Confirmed>(result);
     }

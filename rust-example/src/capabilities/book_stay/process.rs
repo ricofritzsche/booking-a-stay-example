@@ -2,10 +2,10 @@ use uuid::Uuid;
 
 use crate::application_state::AppState;
 
-use super::decide::decide;
+use super::core::book_stay;
 use super::request::BookStay;
 use super::result::BookingRejected;
-use super::sql::{
+use super::state_access::{
     LoadBookingStateError, RecordReservationError, load_booking_state, record_reservation_confirmed,
 };
 
@@ -42,7 +42,7 @@ pub async fn process(
     let reservation_id = state.providers.ids.new_id();
     let now = state.providers.clock.now();
 
-    let confirmed = match decide(&request, &context, reservation_id, now) {
+    let confirmed = match book_stay(&request, &context, reservation_id, now) {
         Ok(confirmed) => confirmed,
         Err(rejection) => {
             tx.rollback().await?;

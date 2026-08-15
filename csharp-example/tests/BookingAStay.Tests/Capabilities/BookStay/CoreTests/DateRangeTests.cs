@@ -1,7 +1,7 @@
 using BookingAStay.Capabilities.BookStay;
-using static BookingAStay.Tests.Capabilities.BookStay.DecideTests.Fixtures;
+using static BookingAStay.Tests.Capabilities.BookStay.CoreTests.Fixtures;
 
-namespace BookingAStay.Tests.Capabilities.BookStay.DecideTests;
+namespace BookingAStay.Tests.Capabilities.BookStay.CoreTests;
 
 public sealed class DateRangeTests
 {
@@ -13,6 +13,6 @@ public sealed class DateRangeTests
 
         Assert.Equal(
             new BookingOutcome.Rejected(BookingRejection.InvalidDateRange),
-            Decider.Decide(request, ValidContext(), ReservationId(), ConfirmedAt()));
+            Core.BookStay(request, ValidContext(), ReservationId(), ConfirmedAt()));
     }
 }

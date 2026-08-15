@@ -1,7 +1,7 @@
 using BookingAStay.Capabilities.BookStay;
-using static BookingAStay.Tests.Capabilities.BookStay.DecideTests.Fixtures;
+using static BookingAStay.Tests.Capabilities.BookStay.CoreTests.Fixtures;
 
-namespace BookingAStay.Tests.Capabilities.BookStay.DecideTests;
+namespace BookingAStay.Tests.Capabilities.BookStay.CoreTests;
 
 public sealed class GuestTests
 {
@@ -12,7 +12,7 @@ public sealed class GuestTests
 
         Assert.Equal(
             new BookingOutcome.Rejected(BookingRejection.InvalidGuestCount),
-            Decider.Decide(request, ValidContext(), ReservationId(), ConfirmedAt()));
+            Core.BookStay(request, ValidContext(), ReservationId(), ConfirmedAt()));
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public sealed class GuestTests
 
         Assert.Equal(
             new BookingOutcome.Rejected(BookingRejection.InvalidGuestCount),
-            Decider.Decide(request, ValidContext(), ReservationId(), ConfirmedAt()));
+            Core.BookStay(request, ValidContext(), ReservationId(), ConfirmedAt()));
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public sealed class GuestTests
 
         Assert.Equal(
             new BookingOutcome.Rejected(BookingRejection.GuestNotFound),
-            Decider.Decide(ValidRequest(), context, ReservationId(), ConfirmedAt()));
+            Core.BookStay(ValidRequest(), context, ReservationId(), ConfirmedAt()));
     }
 
     [Fact]
@@ -42,6 +42,6 @@ public sealed class GuestTests
 
         Assert.Equal(
             new BookingOutcome.Rejected(BookingRejection.GuestBlocked),
-            Decider.Decide(ValidRequest(), context, ReservationId(), ConfirmedAt()));
+            Core.BookStay(ValidRequest(), context, ReservationId(), ConfirmedAt()));
     }
 }

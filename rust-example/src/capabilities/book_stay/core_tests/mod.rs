@@ -4,7 +4,7 @@ use uuid::Uuid;
 use super::context::{
     BookingContext, GuestBookingEligibility, ListingBookingSettings, ListingBookingStatus,
 };
-use super::decide::decide;
+use super::core::book_stay;
 use super::request::{BookStay, Stay};
 
 mod availability;

@@ -1,8 +1,10 @@
 namespace BookingAStay.Capabilities.BookStay;
 
-public static class Decider
+// Functional Core for the BookStay RPU.
+public static class Core
 {
-    public static BookingOutcome Decide(
+    // Functional Core: a pure function that returns a BookingOutcome.
+    public static BookingOutcome BookStay(
         BookStayRequest request,
         BookingContext context,
         Guid reservationId,
@@ -62,6 +64,7 @@ public static class Decider
             listing.MaxNights));
     }
 
+    // Domain Operation: pure listing-rule logic with no local function calls.
     private static BookingRejection? ValidateListing(BookStayRequest request, ListingBookingSettings listing)
     {
         if (listing.BookingStatus == ListingBookingStatus.Disabled)

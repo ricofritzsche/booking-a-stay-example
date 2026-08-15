@@ -15,8 +15,10 @@ public sealed record BookStayConfirmedBody(Guid ReservationId);
 
 public sealed record ApiErrorBody(string Code, string Message);
 
+// HTTP Delivery Mechanism for the BookStay RPU.
 public static class BookStayEndpoint
 {
+    // Translates the HTTP request into a Domain Request and the RPU response back into HTTP.
     public static async Task<IResult> Handle(
         BookStayRequestBody body,
         NpgsqlDataSource dataSource,
@@ -58,6 +60,7 @@ public static class BookStayEndpoint
         }
     }
 
+    // Pure transport mapping from a domain rejection to HTTP values.
     public static (int Status, string Code, string Message) RejectionHttpMapping(BookingRejection rejection)
     {
         return rejection switch

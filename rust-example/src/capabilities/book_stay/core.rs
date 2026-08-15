@@ -1,3 +1,5 @@
+//! Functional Core for the Book Stay capability.
+
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
@@ -7,7 +9,7 @@ use super::context::{
 use super::request::BookStay;
 use super::result::{BookingRejected, ReservationConfirmed};
 
-pub fn decide(
+pub fn book_stay(
     request: &BookStay,
     context: &BookingContext,
     reservation_id: Uuid,

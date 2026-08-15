@@ -18,6 +18,7 @@ public sealed record ListingBookingSettings(
     int MinNights,
     int? MaxNights);
 
+// Input value for the BookStay Functional Core.
 public sealed record BookingContext(
     GuestBookingEligibility? Guest,
     ListingBookingSettings? Listing,

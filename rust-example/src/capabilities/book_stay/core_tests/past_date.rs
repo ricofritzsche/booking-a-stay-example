@@ -10,7 +10,7 @@ fn rejects_stay_starting_in_the_past() {
     };
 
     assert_eq!(
-        decide(
+        book_stay(
             &request,
             &valid_context(),
             reservation_id(),
@@ -28,7 +28,7 @@ fn allows_stay_starting_today() {
         check_out: date(2026, 7, 7),
     };
 
-    let result = decide(
+    let result = book_stay(
         &request,
         &valid_context(),
         reservation_id(),
@@ -46,7 +46,7 @@ fn allows_stay_starting_in_the_future() {
         check_out: date(2026, 7, 8),
     };
 
-    let result = decide(
+    let result = book_stay(
         &request,
         &valid_context(),
         reservation_id(),

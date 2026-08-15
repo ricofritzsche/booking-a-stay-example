@@ -1,3 +1,5 @@
+//! PostgreSQL state access owned by the Book Stay capability.
+
 use chrono::NaiveDate;
 use sqlx::{Postgres, Row, Transaction};
 
@@ -220,7 +222,7 @@ pub async fn record_reservation_confirmed(
         .execute(&mut **tx)
         .await
         .map_err(|error| {
-            if is_unique_violation(&error) {
+            if is_unavailable_night_conflict(&error) {
                 RecordReservationError::ListingUnavailable
             } else {
                 RecordReservationError::Database(error)
@@ -261,9 +263,9 @@ fn u32_to_i32(field: &str, value: u32) -> Result<i32, RecordReservationError> {
     })
 }
 
-fn is_unique_violation(error: &sqlx::Error) -> bool {
-    error
-        .as_database_error()
-        .and_then(|database_error| database_error.code())
-        .is_some_and(|code| code == "23505")
+fn is_unavailable_night_conflict(error: &sqlx::Error) -> bool {
+    error.as_database_error().is_some_and(|database_error| {
+        database_error.code().is_some_and(|code| code == "23505")
+            && database_error.constraint() == Some("uq_listing_unavailable_nights_listing_night")
+    })
 }

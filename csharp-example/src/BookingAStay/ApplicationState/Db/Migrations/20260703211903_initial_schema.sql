@@ -99,7 +99,8 @@ CREATE TABLE listing_unavailable_nights (
     reason              TEXT,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    PRIMARY KEY (listing_id, night),
+    CONSTRAINT uq_listing_unavailable_nights_listing_night
+        PRIMARY KEY (listing_id, night),
 
     CONSTRAINT listing_unavailable_nights_reservation_fk
         FOREIGN KEY (reservation_id, listing_id)

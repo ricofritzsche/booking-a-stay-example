@@ -1,5 +1,6 @@
 namespace BookingAStay.Capabilities.BookStay;
 
+// Accepted outcome data produced by the Functional Core.
 public sealed record ReservationConfirmed(
     Guid ReservationId,
     Guid GuestId,
@@ -11,6 +12,7 @@ public sealed record ReservationConfirmed(
     int MinNightsAtConfirmation,
     int? MaxNightsAtConfirmation);
 
+// Rejection values produced by the Functional Core.
 public enum BookingRejection
 {
     InvalidDateRange,
@@ -26,6 +28,7 @@ public enum BookingRejection
     ListingUnavailable,
 }
 
+// Output value returned by the BookStay Functional Core.
 public abstract record BookingOutcome
 {
     private BookingOutcome()

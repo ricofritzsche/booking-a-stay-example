@@ -8,7 +8,7 @@ fn confirms_reservation_when_all_conditions_are_valid() {
     let reservation_id = reservation_id();
     let confirmed_at = confirmed_at();
 
-    let result = decide(&request, &context, reservation_id, confirmed_at);
+    let result = book_stay(&request, &context, reservation_id, confirmed_at);
 
     assert_eq!(
         result,
@@ -35,7 +35,7 @@ fn confirmed_reservation_includes_max_guests_at_confirmation() {
         .expect("valid fixture has listing")
         .max_guests = 5;
 
-    let result = decide(&valid_request(), &context, reservation_id(), confirmed_at())
+    let result = book_stay(&valid_request(), &context, reservation_id(), confirmed_at())
         .expect("reservation should be confirmed");
 
     assert_eq!(result.max_guests_at_confirmation, 5);
@@ -50,7 +50,7 @@ fn confirmed_reservation_includes_min_nights_at_confirmation() {
         .expect("valid fixture has listing")
         .min_nights = 3;
 
-    let result = decide(&valid_request(), &context, reservation_id(), confirmed_at())
+    let result = book_stay(&valid_request(), &context, reservation_id(), confirmed_at())
         .expect("reservation should be confirmed");
 
     assert_eq!(result.min_nights_at_confirmation, 3);
@@ -65,7 +65,7 @@ fn confirmed_reservation_includes_max_nights_at_confirmation() {
         .expect("valid fixture has listing")
         .max_nights = Some(6);
 
-    let result = decide(&valid_request(), &context, reservation_id(), confirmed_at())
+    let result = book_stay(&valid_request(), &context, reservation_id(), confirmed_at())
         .expect("reservation should be confirmed");
 
     assert_eq!(result.max_nights_at_confirmation, Some(6));

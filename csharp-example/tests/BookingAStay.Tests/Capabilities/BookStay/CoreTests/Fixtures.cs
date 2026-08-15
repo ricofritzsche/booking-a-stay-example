@@ -1,6 +1,6 @@
 using BookingAStay.Capabilities.BookStay;
 
-namespace BookingAStay.Tests.Capabilities.BookStay.DecideTests;
+namespace BookingAStay.Tests.Capabilities.BookStay.CoreTests;
 
 internal static class Fixtures
 {

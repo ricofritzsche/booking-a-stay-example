@@ -3,11 +3,13 @@ using Npgsql;
 
 namespace BookingAStay.Capabilities.BookStay;
 
+// Values loaded by the Imperative Shell before it creates the Functional Core input.
 public sealed record LoadedBookingState(
     GuestBookingEligibility? Guest,
     ListingBookingSettings? Listing,
     IReadOnlyList<DateOnly> UnavailableNights)
 {
+    // Integration: forwards the loaded values into BookingContext.
     public BookingContext ToContext()
     {
         return new BookingContext(Guest, Listing, UnavailableNights);
@@ -20,7 +22,8 @@ public sealed class ListingUnavailableException : Exception
 {
 }
 
-public static class Sql
+// Database-facing part of the BookStay Imperative Shell.
+public static class StateAccess
 {
     internal sealed record GuestRow(string BookingEligibility);
 
@@ -32,6 +35,7 @@ public static class Sql
 
     internal sealed record UnavailableNightRow(DateOnly Night);
 
+    // Integration: composes the Resource Operations that load the required state.
     public static async Task<LoadedBookingState> LoadBookingState(
         NpgsqlConnection connection,
         NpgsqlTransaction transaction,
@@ -45,6 +49,7 @@ public static class Sql
         return new LoadedBookingState(guest, listing, unavailableNights);
     }
 
+    // Resource Operation: persists a confirmation and translates a database conflict.
     public static async Task RecordReservationConfirmed(
         NpgsqlConnection connection,
         NpgsqlTransaction transaction,
@@ -116,12 +121,15 @@ public static class Sql
                 },
                 transaction);
         }
-        catch (PostgresException exception) when (exception.SqlState == PostgresErrorCodes.UniqueViolation)
+        catch (PostgresException exception) when (
+            exception.SqlState == PostgresErrorCodes.UniqueViolation &&
+            exception.ConstraintName == "uq_listing_unavailable_nights_listing_night")
         {
             throw new ListingUnavailableException();
         }
     }
 
+    // Resource Operation: reads and translates guest eligibility.
     private static async Task<GuestBookingEligibility?> LoadGuestEligibility(
         NpgsqlConnection connection,
         NpgsqlTransaction transaction,
@@ -150,6 +158,7 @@ public static class Sql
         };
     }
 
+    // Resource Operation: reads and translates listing settings.
     private static async Task<ListingBookingSettings?> LoadListingBookingSettings(
         NpgsqlConnection connection,
         NpgsqlTransaction transaction,
@@ -191,6 +200,7 @@ public static class Sql
             row.MaxNights);
     }
 
+    // Resource Operation: reads unavailable nights.
     private static async Task<IReadOnlyList<DateOnly>> LoadUnavailableNights(
         NpgsqlConnection connection,
         NpgsqlTransaction transaction,

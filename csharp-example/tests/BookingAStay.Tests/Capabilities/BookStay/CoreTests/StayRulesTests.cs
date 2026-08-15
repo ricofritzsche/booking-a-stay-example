@@ -1,7 +1,7 @@
 using BookingAStay.Capabilities.BookStay;
-using static BookingAStay.Tests.Capabilities.BookStay.DecideTests.Fixtures;
+using static BookingAStay.Tests.Capabilities.BookStay.CoreTests.Fixtures;
 
-namespace BookingAStay.Tests.Capabilities.BookStay.DecideTests;
+namespace BookingAStay.Tests.Capabilities.BookStay.CoreTests;
 
 public sealed class StayRulesTests
 {
@@ -12,7 +12,7 @@ public sealed class StayRulesTests
 
         Assert.Equal(
             new BookingOutcome.Rejected(BookingRejection.TooManyGuests),
-            Decider.Decide(request, ValidContext(), ReservationId(), ConfirmedAt()));
+            Core.BookStay(request, ValidContext(), ReservationId(), ConfirmedAt()));
     }
 
     [Fact]
@@ -24,7 +24,7 @@ public sealed class StayRulesTests
 
         Assert.Equal(
             new BookingOutcome.Rejected(BookingRejection.StayTooShort),
-            Decider.Decide(request, context, ReservationId(), ConfirmedAt()));
+            Core.BookStay(request, context, ReservationId(), ConfirmedAt()));
     }
 
     [Fact]
@@ -36,6 +36,6 @@ public sealed class StayRulesTests
 
         Assert.Equal(
             new BookingOutcome.Rejected(BookingRejection.StayTooLong),
-            Decider.Decide(request, context, ReservationId(), ConfirmedAt()));
+            Core.BookStay(request, context, ReservationId(), ConfirmedAt()));
     }
 }

@@ -1,7 +1,7 @@
 using BookingAStay.Capabilities.BookStay;
-using static BookingAStay.Tests.Capabilities.BookStay.DecideTests.Fixtures;
+using static BookingAStay.Tests.Capabilities.BookStay.CoreTests.Fixtures;
 
-namespace BookingAStay.Tests.Capabilities.BookStay.DecideTests;
+namespace BookingAStay.Tests.Capabilities.BookStay.CoreTests;
 
 public sealed class AvailabilityTests
 {
@@ -12,7 +12,7 @@ public sealed class AvailabilityTests
 
         Assert.Equal(
             new BookingOutcome.Rejected(BookingRejection.ListingUnavailable),
-            Decider.Decide(ValidRequest(), context, ReservationId(), ConfirmedAt()));
+            Core.BookStay(ValidRequest(), context, ReservationId(), ConfirmedAt()));
     }
 
     [Fact]
@@ -21,7 +21,7 @@ public sealed class AvailabilityTests
         var request = ValidRequest();
         var context = ValidContext() with { UnavailableNights = [request.Stay.CheckOut] };
 
-        var result = Decider.Decide(request, context, ReservationId(), ConfirmedAt());
+        var result = Core.BookStay(request, context, ReservationId(), ConfirmedAt());
 
         Assert.IsType<BookingOutcome.Confirmed>(result);
     }

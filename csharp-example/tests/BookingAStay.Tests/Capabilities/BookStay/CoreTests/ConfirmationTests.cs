@@ -1,7 +1,7 @@
 using BookingAStay.Capabilities.BookStay;
-using static BookingAStay.Tests.Capabilities.BookStay.DecideTests.Fixtures;
+using static BookingAStay.Tests.Capabilities.BookStay.CoreTests.Fixtures;
 
-namespace BookingAStay.Tests.Capabilities.BookStay.DecideTests;
+namespace BookingAStay.Tests.Capabilities.BookStay.CoreTests;
 
 public sealed class ConfirmationTests
 {
@@ -13,7 +13,7 @@ public sealed class ConfirmationTests
         var reservationId = ReservationId();
         var confirmedAt = ConfirmedAt();
 
-        var result = Decider.Decide(request, context, reservationId, confirmedAt);
+        var result = Core.BookStay(request, context, reservationId, confirmedAt);
 
         Assert.Equal(
             new BookingOutcome.Confirmed(new ReservationConfirmed(
@@ -36,7 +36,7 @@ public sealed class ConfirmationTests
         var context = ValidContext() with { Listing = listing with { MaxGuests = 5 } };
 
         var result = Assert.IsType<BookingOutcome.Confirmed>(
-            Decider.Decide(ValidRequest(), context, ReservationId(), ConfirmedAt()));
+            Core.BookStay(ValidRequest(), context, ReservationId(), ConfirmedAt()));
 
         Assert.Equal(5, result.Reservation.MaxGuestsAtConfirmation);
     }
@@ -48,7 +48,7 @@ public sealed class ConfirmationTests
         var context = ValidContext() with { Listing = listing with { MinNights = 3 } };
 
         var result = Assert.IsType<BookingOutcome.Confirmed>(
-            Decider.Decide(ValidRequest(), context, ReservationId(), ConfirmedAt()));
+            Core.BookStay(ValidRequest(), context, ReservationId(), ConfirmedAt()));
 
         Assert.Equal(3, result.Reservation.MinNightsAtConfirmation);
     }
@@ -60,7 +60,7 @@ public sealed class ConfirmationTests
         var context = ValidContext() with { Listing = listing with { MaxNights = 6 } };
 
         var result = Assert.IsType<BookingOutcome.Confirmed>(
-            Decider.Decide(ValidRequest(), context, ReservationId(), ConfirmedAt()));
+            Core.BookStay(ValidRequest(), context, ReservationId(), ConfirmedAt()));
 
         Assert.Equal(6, result.Reservation.MaxNightsAtConfirmation);
     }
