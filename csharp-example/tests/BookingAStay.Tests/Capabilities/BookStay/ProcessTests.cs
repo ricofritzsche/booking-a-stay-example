@@ -8,6 +8,8 @@ namespace BookingAStay.Tests.Capabilities.BookStay;
 [Collection(PostgreSqlCollection.Name)]
 public sealed class ProcessTests
 {
+    private static readonly int BookingYear = DateTimeOffset.UtcNow.Year + 1;
+
     private readonly PostgreSqlFixture _fixture;
 
     public ProcessTests(PostgreSqlFixture fixture)
@@ -29,7 +31,7 @@ public sealed class ProcessTests
         Assert.Equal(1, await Count(dataSource, "reservations"));
         Assert.Equal(confirmed.ReservationId, await StoredReservationId(dataSource));
         Assert.Equal(
-            [Date(2026, 8, 1), Date(2026, 8, 2), Date(2026, 8, 3)],
+            [BookingDate(8, 1), BookingDate(8, 2), BookingDate(8, 3)],
             await UnavailableNights(dataSource, fixture.ListingId));
     }
 
@@ -68,7 +70,7 @@ public sealed class ProcessTests
         await using var command = new NpgsqlCommand(
             "SELECT COUNT(*) FROM listing_unavailable_nights WHERE night = @night",
             connection);
-        command.Parameters.AddWithValue("night", Date(2026, 8, 4));
+        command.Parameters.AddWithValue("night", BookingDate(8, 4));
 
         Assert.Equal(0, (long)(await command.ExecuteScalarAsync() ?? 0L));
     }
@@ -119,7 +121,7 @@ public sealed class ProcessTests
             connection))
         {
             command.Parameters.AddWithValue("listing_id", fixture.ListingId);
-            command.Parameters.AddWithValue("night", Date(2026, 8, 2));
+            command.Parameters.AddWithValue("night", BookingDate(8, 2));
             await command.ExecuteNonQueryAsync();
         }
 
@@ -165,7 +167,7 @@ public sealed class ProcessTests
         var firstRequest = BookStayRequest(fixture.GuestId, fixture.ListingId);
         var secondRequest = BookStayRequest(secondGuestId, fixture.ListingId) with
         {
-            Stay = new Stay(Date(2026, 8, 10), Date(2026, 8, 13)),
+            Stay = new Stay(BookingDate(8, 10), BookingDate(8, 13)),
         };
 
         var responses = await Task.WhenAll(
@@ -178,12 +180,12 @@ public sealed class ProcessTests
         Assert.Equal(6, await Count(dataSource, "listing_unavailable_nights"));
         Assert.Equal(
             [
-                Date(2026, 8, 1),
-                Date(2026, 8, 2),
-                Date(2026, 8, 3),
-                Date(2026, 8, 10),
-                Date(2026, 8, 11),
-                Date(2026, 8, 12),
+                BookingDate(8, 1),
+                BookingDate(8, 2),
+                BookingDate(8, 3),
+                BookingDate(8, 10),
+                BookingDate(8, 11),
+                BookingDate(8, 12),
             ],
             await UnavailableNights(dataSource, fixture.ListingId));
     }
@@ -199,7 +201,7 @@ public sealed class ProcessTests
         var firstRequest = BookStayRequest(fixture.GuestId, fixture.ListingId);
         var secondRequest = BookStayRequest(secondGuestId, fixture.ListingId) with
         {
-            Stay = new Stay(Date(2026, 8, 4), Date(2026, 8, 7)),
+            Stay = new Stay(BookingDate(8, 4), BookingDate(8, 7)),
         };
 
         var responses = await Task.WhenAll(
@@ -211,12 +213,12 @@ public sealed class ProcessTests
         Assert.Equal(6, await Count(dataSource, "listing_unavailable_nights"));
         Assert.Equal(
             [
-                Date(2026, 8, 1),
-                Date(2026, 8, 2),
-                Date(2026, 8, 3),
-                Date(2026, 8, 4),
-                Date(2026, 8, 5),
-                Date(2026, 8, 6),
+                BookingDate(8, 1),
+                BookingDate(8, 2),
+                BookingDate(8, 3),
+                BookingDate(8, 4),
+                BookingDate(8, 5),
+                BookingDate(8, 6),
             ],
             await UnavailableNights(dataSource, fixture.ListingId));
     }
@@ -322,7 +324,7 @@ public sealed class ProcessTests
         return new BookStayRequest(
             guestId,
             listingId,
-            new Stay(Date(2026, 8, 1), Date(2026, 8, 4)),
+            new Stay(BookingDate(8, 1), BookingDate(8, 4)),
             2);
     }
 
@@ -384,9 +386,9 @@ public sealed class ProcessTests
         return (T)(await command.ExecuteScalarAsync() ?? throw new InvalidOperationException("Expected scalar value."));
     }
 
-    private static DateOnly Date(int year, int month, int day)
+    private static DateOnly BookingDate(int month, int day)
     {
-        return new DateOnly(year, month, day);
+        return new DateOnly(BookingYear, month, day);
     }
 
     private static Guid GuidFromByte(uint value)

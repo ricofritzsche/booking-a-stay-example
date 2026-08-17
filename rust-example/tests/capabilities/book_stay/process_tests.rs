@@ -3,7 +3,7 @@ use booking_a_stay::capabilities::book_stay::process::{BookStayResponse, process
 use booking_a_stay::capabilities::book_stay::request::{BookStay, Stay};
 use booking_a_stay::capabilities::book_stay::result::BookingRejected;
 use booking_a_stay::providers::Providers;
-use chrono::NaiveDate;
+use chrono::{Datelike, NaiveDate, Utc};
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use sqlx::{Executor, Row};
 use tokio::sync::Mutex;
@@ -44,7 +44,7 @@ async fn confirms_reservation_and_records_listing_unavailable_nights() {
     let unavailable_nights = unavailable_nights(&pool, fixture.listing_id).await;
     assert_eq!(
         unavailable_nights,
-        vec![date(2026, 8, 1), date(2026, 8, 2), date(2026, 8, 3)]
+        vec![booking_date(8, 1), booking_date(8, 2), booking_date(8, 3)]
     );
 }
 
@@ -93,7 +93,7 @@ async fn does_not_occupy_the_check_out_date() {
 
     let check_out_count: i64 =
         sqlx::query_scalar("SELECT COUNT(*) FROM listing_unavailable_nights WHERE night = $1")
-            .bind(date(2026, 8, 4))
+            .bind(booking_date(8, 4))
             .fetch_one(&pool)
             .await
             .expect("check-out count should be readable");
@@ -158,7 +158,7 @@ async fn rejects_when_requested_night_is_already_unavailable() {
         "#,
     )
     .bind(fixture.listing_id)
-    .bind(date(2026, 8, 2))
+    .bind(booking_date(8, 2))
     .execute(&pool)
     .await
     .expect("host block should be inserted");
@@ -337,8 +337,8 @@ fn book_stay_request(guest_id: Uuid, listing_id: Uuid) -> BookStay {
         guest_id,
         listing_id,
         stay: Stay {
-            check_in: date(2026, 8, 1),
-            check_out: date(2026, 8, 4),
+            check_in: booking_date(8, 1),
+            check_out: booking_date(8, 4),
         },
         guest_count: 2,
     }
@@ -397,6 +397,10 @@ async fn assert_no_reservation_or_unavailable_nights(pool: &PgPool) {
 
 fn date(year: i32, month: u32, day: u32) -> NaiveDate {
     NaiveDate::from_ymd_opt(year, month, day).expect("test date should be valid")
+}
+
+fn booking_date(month: u32, day: u32) -> NaiveDate {
+    date(Utc::now().year() + 1, month, day)
 }
 
 fn uuid(value: u128) -> Uuid {
