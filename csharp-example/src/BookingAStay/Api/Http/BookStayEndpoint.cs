@@ -34,7 +34,7 @@ public static class BookStayEndpoint
 
         try
         {
-            var response = await Processor.ProcessBookStay(
+            var response = await Processor.ProcessAsync(
                 request,
                 dataSource,
                 providers,

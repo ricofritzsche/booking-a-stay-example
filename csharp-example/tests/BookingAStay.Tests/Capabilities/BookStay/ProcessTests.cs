@@ -24,7 +24,7 @@ public sealed class ProcessTests
         var fixture = await SeedBookableListing(dataSource, "eligible", "bookable");
 
         var request = BookStayRequest(fixture.GuestId, fixture.ListingId);
-        var response = await Processor.ProcessBookStay(request, dataSource, new ProviderBundle());
+        var response = await Processor.ProcessAsync(request, dataSource, new ProviderBundle());
 
         var confirmed = Assert.IsType<BookStayResponse.Confirmed>(response);
 
@@ -42,7 +42,7 @@ public sealed class ProcessTests
         var fixture = await SeedListingWithTerms(dataSource, "eligible", "bookable", 5, 2, 7);
 
         var request = BookStayRequest(fixture.GuestId, fixture.ListingId) with { GuestCount = 5 };
-        var response = await Processor.ProcessBookStay(request, dataSource, new ProviderBundle());
+        var response = await Processor.ProcessAsync(request, dataSource, new ProviderBundle());
 
         Assert.IsType<BookStayResponse.Confirmed>(response);
         Assert.Equal(5, await StoredMaxGuestsAtConfirmation(dataSource));
@@ -64,7 +64,7 @@ public sealed class ProcessTests
         var fixture = await SeedBookableListing(dataSource, "eligible", "bookable");
 
         var request = BookStayRequest(fixture.GuestId, fixture.ListingId);
-        await Processor.ProcessBookStay(request, dataSource, new ProviderBundle());
+        await Processor.ProcessAsync(request, dataSource, new ProviderBundle());
 
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = new NpgsqlCommand(
@@ -82,7 +82,7 @@ public sealed class ProcessTests
         var fixture = await SeedBookableListing(dataSource, "blocked", "bookable");
 
         var request = BookStayRequest(fixture.GuestId, fixture.ListingId);
-        var response = await Processor.ProcessBookStay(request, dataSource, new ProviderBundle());
+        var response = await Processor.ProcessAsync(request, dataSource, new ProviderBundle());
 
         Assert.Equal(new BookStayResponse.Rejected(BookingRejection.GuestBlocked), response);
         await AssertNoReservationOrUnavailableNights(dataSource);
@@ -95,7 +95,7 @@ public sealed class ProcessTests
         var fixture = await SeedBookableListing(dataSource, "eligible", "disabled");
 
         var request = BookStayRequest(fixture.GuestId, fixture.ListingId);
-        var response = await Processor.ProcessBookStay(request, dataSource, new ProviderBundle());
+        var response = await Processor.ProcessAsync(request, dataSource, new ProviderBundle());
 
         Assert.Equal(new BookStayResponse.Rejected(BookingRejection.ListingDisabled), response);
         await AssertNoReservationOrUnavailableNights(dataSource);
@@ -126,7 +126,7 @@ public sealed class ProcessTests
         }
 
         var request = BookStayRequest(fixture.GuestId, fixture.ListingId);
-        var response = await Processor.ProcessBookStay(request, dataSource, new ProviderBundle());
+        var response = await Processor.ProcessAsync(request, dataSource, new ProviderBundle());
 
         Assert.Equal(new BookStayResponse.Rejected(BookingRejection.ListingUnavailable), response);
         Assert.Equal(0, await Count(dataSource, "reservations"));
@@ -143,8 +143,8 @@ public sealed class ProcessTests
         var providers = new ProviderBundle();
 
         var responses = await Task.WhenAll(
-            Processor.ProcessBookStay(firstRequest, dataSource, providers),
-            Processor.ProcessBookStay(secondRequest, dataSource, providers));
+            Processor.ProcessAsync(firstRequest, dataSource, providers),
+            Processor.ProcessAsync(secondRequest, dataSource, providers));
 
         var confirmedCount = responses.Count(response => response is BookStayResponse.Confirmed);
         var unavailableRejectionCount = responses.Count(response =>
@@ -171,8 +171,8 @@ public sealed class ProcessTests
         };
 
         var responses = await Task.WhenAll(
-            Processor.ProcessBookStay(firstRequest, dataSource, providers),
-            Processor.ProcessBookStay(secondRequest, dataSource, providers));
+            Processor.ProcessAsync(firstRequest, dataSource, providers),
+            Processor.ProcessAsync(secondRequest, dataSource, providers));
 
         Assert.IsType<BookStayResponse.Confirmed>(responses[0]);
         Assert.IsType<BookStayResponse.Confirmed>(responses[1]);
@@ -205,8 +205,8 @@ public sealed class ProcessTests
         };
 
         var responses = await Task.WhenAll(
-            Processor.ProcessBookStay(firstRequest, dataSource, providers),
-            Processor.ProcessBookStay(secondRequest, dataSource, providers));
+            Processor.ProcessAsync(firstRequest, dataSource, providers),
+            Processor.ProcessAsync(secondRequest, dataSource, providers));
 
         Assert.IsType<BookStayResponse.Confirmed>(responses[0]);
         Assert.IsType<BookStayResponse.Confirmed>(responses[1]);

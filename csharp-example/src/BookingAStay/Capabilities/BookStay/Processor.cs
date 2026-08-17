@@ -21,7 +21,7 @@ public static class Processor
     // RPU entry point and Imperative Shell.
     // Strict IOSP: hybrid because it combines project-local function calls
     // with transaction and outcome-handling logic.
-    public static async Task<BookStayResponse> ProcessBookStay(
+    public static async Task<BookStayResponse> ProcessAsync(
         BookStayRequest request,
         NpgsqlDataSource dataSource,
         ProviderBundle providers,
