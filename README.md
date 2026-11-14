@@ -82,3 +82,25 @@ The example intentionally stays focused.
 It does not cover payments, pricing, taxes, refunds, host approval workflows, reviews, guest messaging, fraud checks, or cancellation policies in detail. These concerns can become separate capabilities later.
 
 The focus is the booking decision and the consistency boundary around that decision.
+
+## License
+
+Copyright (c) 2026 Rico Fritzsche.
+
+The software in this repository is licensed under the [MIT License](LICENSE).
+This includes the Rust and C# implementations, tests, SQL migrations, scripts,
+configuration files, and software code examples embedded in the documentation.
+
+Documentation text and diagrams are excluded from the MIT license grant and
+are licensed under [Creative Commons Attribution 4.0 International
+(CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/); see
+[LICENSE-DOCS](LICENSE-DOCS) for the full license text. This includes README
+files, `DOMAIN.md`, `specs/`, `guidelines/`, `AGENTS.md`, and the written
+guidance under `.agents/skills/`.
+
+Both licenses permit commercial use and adaptations, subject to their
+respective terms. When sharing documentation or adaptations, credit Rico
+Fritzsche, link to [this repository](https://github.com/ricofritzsche/booking-a-stay-example)
+and the CC BY 4.0 license, retain supplied notices, and indicate changes.
+
+Third-party material and dependencies remain subject to their own licenses.

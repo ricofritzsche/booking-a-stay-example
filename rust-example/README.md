@@ -238,3 +238,15 @@ cargo test           # run tests
 cargo clippy         # lints
 cargo fmt            # format
 ```
+
+## License
+
+Copyright (c) 2026 Rico Fritzsche.
+
+The implementation and software code examples in this README are licensed
+under the [MIT License](../LICENSE). Documentation text and diagrams are
+licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/);
+see [LICENSE-DOCS](../LICENSE-DOCS) for the full license text.
+
+See the [repository licensing section](../README.md#license) for the complete
+scope and attribution information.
